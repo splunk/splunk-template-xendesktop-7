@@ -1,0 +1,45 @@
+<form>
+  <label>Installed Software by Application Name</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="SiteName">
+      <label>Site:</label>
+      <choice value="*">All Sites</choice>
+      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
+	<![CDATA[| inputlookup lookup_host_site.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+    <input type="text" token="machinename">
+      <label>Machine:</label>
+      <seed>*</seed>
+    </input>
+    
+    <input type="text" token="appName">
+      <label>Application Name:</label>
+      <seed>*</seed>
+    </input>
+
+  </fieldset>
+  
+  <row>
+    <table id="tblSoftware">
+      <searchString>
+	`xd_index` sourcetype="xendesktop:*:installedsoftware" SiteName="$SiteName$" host="$machinename$" Name="$appName$" |
+	stats values(host) AS Hosts by Name Version Vendor |
+	sort Name |
+	rename Name AS "Application Name"
+      </searchString>
+      
+      <option name="count">100</option>
+    </table>
+  </row>
+  
+</form>

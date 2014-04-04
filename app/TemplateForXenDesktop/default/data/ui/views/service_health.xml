@@ -1,0 +1,45 @@
+<form script="service_health.js" stylesheet="service_health.css">
+  <label>Farm Services - Health</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="FarmName">
+      <label>Farm:</label>
+      <choice value="*">All Farms</choice>
+      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
+	<![CDATA[| inputlookup lookup_host_farm.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	This table shows latest value of each <a href="help#def_ServiceGroup">Service Group</a> in the past 24 hours.  Click on a row to get details.
+      </p>
+    </html>
+  </row>
+  
+  <row>
+  
+    <table id="tblHealth">
+      <title>Health</title>
+      <searchString>
+	`xd_index` sourcetype="WMI:Services" `Services-Inf` FarmName="$FarmName$" earliest="-24h@h" latest="now" |
+	stats latest(State) AS State by ServiceGroup FarmName |
+	table FarmName ServiceGroup State |
+	rename FarmName AS "Farm Name" ServiceGroup AS "Service Group"
+      </searchString>
+      
+      <drilldown>
+	<link>
+	  /app/SplunkAppForXD/services_group?form.ServiceGroup=$row.Service Group$
+	</link>
+      </drilldown>
+    </table>
+    
+  </row>
+  
+</form>

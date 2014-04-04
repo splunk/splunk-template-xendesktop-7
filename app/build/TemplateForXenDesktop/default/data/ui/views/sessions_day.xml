@@ -1,0 +1,57 @@
+<form script="sessions-day.js" stylesheet="sessions-day.css">
+  <label>Session Details</label>
+  
+  <searchTemplate>
+    `xd_index` sourcetype="xendesktop:*:session"
+    earliest=$date$:00:00:00 latest=$date$:23:59:59 |
+    bin _time span=1h |
+    eval hour=strftime(_time, "%H") |
+    table UserName MachineName SessionKey StartTime _time hour
+  </searchTemplate>
+  
+  <fieldset autoRun="true">
+    
+    <input type="text" token="date" id="date">
+      <label>Date:</label>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <chart>
+      <searchPostProcess>
+	stats dc(UserName) AS Sessions by hour |
+	sort hour |
+	rename hour AS Hour
+      </searchPostProcess>
+      <title>Session Count by Hour</title>
+      <option name="charting.chart">column</option>
+    </chart>
+  </row>
+ 
+  <row>
+    
+    <table>
+      <title>Session Details</title>
+      <searchPostProcess>
+        stats latest(_time) AS CurrentTime by StartTime SessionKey MachineName UserName |
+        convert timeformat="%m/%d/%Y %H:%M:%S %Z" mktime(CurrentTime) mktime(StartTime) |
+        eval SessionDuration = tostring(CurrentTime - StartTime, "duration") |
+	eval "Log on Time" = strftime(StartTime, "%m/%d/%Y %H:%M:%S") |
+        table UserName "Log on Time" MachineName  SessionKey SessionDuration StartTime CurrentTime |
+	rename UserName AS "User Name" MachineName AS "Machine Name" SessionKey AS "Session Key" SessionDuration AS "Session Duration"
+      </searchPostProcess>
+      <option name="displayRowNumbers">0</option>
+      
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenDesktop/session-user?form.username=$row.User Name$&form.machinename=$row.Machine Name$&earliest=$row.StartTime$&latest=$row.CurrentTime$&form.sessionKey=$row.Session Key$
+          ]]>
+         </link>
+     </drilldown>
+      
+    </table>
+  </row>
+  
+</form>

@@ -1,0 +1,96 @@
+<form  script="services_group.js" stylesheet="services_group.css">
+  <label>Service Group Status</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="SiteName">
+      <label>Site:</label>
+      <choice value="*">All Sites</choice>
+      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
+	<![CDATA[| inputlookup lookup_host_site.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+    <input type="dropdown" token="ServiceGroup">
+      <label>Service Group:</label>
+      <choice value="*">All</choice>
+      <populatingSearch fieldForValue="ServiceGroup" fieldForLabel="ServiceGroup">
+	<![CDATA[| inputlookup lookup_service_groups.csv | stats count by ServiceGroup | sort ServiceGroup]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="dropdown" token="state">
+      <label>Service State:</label>
+      <choice value="*">Any</choice>
+      <choice value="Running">Running</choice>
+      <choice value="Stopped">Stopped</choice>
+      <default>Stopped</default>
+    </input>
+    
+    <input type="text" token="machinename" id="server">
+      <label>Machine:</label>
+      <seed>*</seed>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	This dashboard displays the latest state of the individual services that make up a <a href="#" id="btnServiceGroups" class="btnModalInfo" data-toggle="modal" data-target="#serviceGroupsDesc">Service Group</a> during the selected time range.  Note that some services may belong to more than one group. <br />
+	Click on a row to see the service's change state history.  For example, when a service changed from "Running" to "Stopped".
+      </p>
+      
+      <!-- Modal -->
+      <div class="modal fade" id="serviceGroupsDesc" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+	  <div class="modal-content">
+	    <div class="modal-header" style="padding-top: 10px; padding-bottom: 10px">
+	      <h4 class="modal-title" id="myModalLabel"><img src="/static/app/TemplateForXenDesktop/images/info.png" style="padding-right: 10px" />Service Groups Details</h4>
+	    </div>
+	    <div class="modal-body">
+	      <p>
+	      A service group is a name of a critical service and all of its dependencies.  For example, the VDA Service group is defined as the Citrix Broker Agent service
+	      along with the Workstation service.  If any one of these services is in a critical state, then the entire service group is considered to be
+	      in a critical state.
+	      </p>
+	    </div>
+	    <div class="modal-footer">
+	      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	    </div>
+	  </div>
+	</div>
+      </div>
+      
+    </html>
+  </row>
+
+  <row>
+    <table id="tblServices">
+      <searchString>
+	`xd_index` sourcetype="WMI:Services" host="$machinename$" SiteName="$SiteName$" ServiceGroup="$ServiceGroup$" |
+	stats latest(State) AS State by host SiteName DisplayName  |
+	search State="$state$*" |
+	table SiteName host  DisplayName State |
+	rename SiteName AS "Site Name" host AS Machine DisplayName as Service
+      </searchString>
+      
+      <drilldown>
+	<link>
+	  <![CDATA[
+	    /app/TemplateForXenDesktop/service_history?earliest=$earliest$&latest=$latest$&form.machinename=$row.Machine$&form.service=$row.Service$
+	  ]]>
+	</link>
+      </drilldown>
+    </table>
+  </row>
+  
+  
+</form>

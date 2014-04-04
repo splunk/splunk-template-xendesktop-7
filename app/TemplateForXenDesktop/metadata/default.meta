@@ -1,0 +1,30 @@
+# Application-level permissions
+
+[]
+access = read : [ * ], write : [ admin, power ]
+
+### EVENT TYPES
+
+[eventtypes]
+export = none
+
+
+### PROPS
+
+[props]
+export = none
+
+
+### TRANSFORMS
+
+[transforms]
+export = none
+
+[savedsearches]
+export = none
+
+[views]
+export = none
+
+[lookups]
+export = none

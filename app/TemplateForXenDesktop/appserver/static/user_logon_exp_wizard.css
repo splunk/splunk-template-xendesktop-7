@@ -1,0 +1,14 @@
+/*
+ 
+ Table cell 4 shows the ActivityId of the logon.  All releated log events will have this
+ value, but may not have the user name.  So, we pass this to the next form.
+ The value of ActivityId is a GUID, so we hide it. 
+*/
+
+table th:nth-child(4) {
+    display: none;
+}
+
+table td:nth-child(4) {
+    display: none;
+}

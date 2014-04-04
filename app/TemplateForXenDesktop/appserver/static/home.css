@@ -1,0 +1,207 @@
+.homeNav
+{
+    width: 710px;
+}
+
+.homeNav li
+{
+    float: left;
+    list-style-type: none;
+    margin: 0;
+    width: 330px;
+    min-height: 200px;
+}
+
+.homeNav .li a
+{
+    content-before: "*";
+}
+
+.homeNav .sectionTitle {
+    font-weight: bold;
+    padding-left: 120px;
+}
+
+.homeNav .sectionDescription {
+    padding-left: 120px;
+}
+
+
+.homeNav .sectionTitle,
+.homeNav .sectionDescription,
+.homeNav .linkTitle
+{
+    display: block;
+}
+
+.homeNav .odd {
+    clear: left;
+}
+
+.homeNav a {
+    text-decoration: none;
+    padding-left: 130px;
+    display: block;
+    border: none;
+}
+
+.homeNav a:link,
+.homeNav a:visited
+{
+    color: #666666;
+    text-decoration: none;
+}
+
+.homeNav a:hover
+{
+    text-decoration: underline;
+}
+
+.homeNav #farmUsage
+{
+    background: url(/static/app/SplunkAppForXD/images/home/DisplaySettings.gif) no-repeat top left;
+}
+
+.homeNav #userExperience
+{
+    background: url(/static/app/SplunkAppForXD/images/home/AccountSettings.gif) no-repeat top left;
+}
+
+
+
+.homeNav a#sessionSettings,
+.homeNav a#sessionSettings:link,
+.homeNav a#sessionSettings:visited
+{
+    background: url(../images/SessionSettings.gif) no-repeat top left;
+}
+
+.homeNav a#sessionSettings:hover
+{
+    background: url(../images/SessionSettingsHover.gif) no-repeat top left;
+}
+
+.homeNav a#connectionSettings,
+.homeNav a#connectionSettings:link,
+.homeNav a#connectionSettings:visited
+{
+    background: url(../images/ConnectionSettings.gif) no-repeat top left;
+}
+
+.homeNav a#connectionSettings:hover
+{
+    background: url(../images/ConnectionSettingsHover.gif) no-repeat top left;
+}
+
+.homeNav a#accountSettings,
+.homeNav a#accountSettings:link,
+.homeNav a#accountSettings:visited
+{
+    background: url(../images/AccountSettings.gif) no-repeat top left;
+}
+
+.homeNav a#accountSettings:hover
+{
+    background: url(../images/AccountSettingsHover.gif) no-repeat top left;
+}
+
+
+	/* SETTINGS INTERIOR PAGES  */
+	.settingsPane
+	{
+	    width: 90%;
+	    /* background: #FFF url(../images/GreyGradient.gif) repeat-y 325px 0; */
+	    margin-top: 10px;
+	    padding-bottom: 10px;
+	}
+	
+	.settingsPane h6
+	{
+	    background: #E2E2E2 url(../images/SettingsSectionBackground.gif) repeat-x top left;
+	    /* color: #000; */
+	    display: block;
+	    margin-bottom: 5px;
+	    margin-top: 20px;
+	    padding: 2px 0 2px 10px;
+	}
+	
+	.settingsKey
+	{
+	    clear: left;
+	    float: left;
+	    width: 300px;
+	    padding: 0 5px 0 10px;
+	}
+	
+	.settingsValue
+	{
+	    float: left;
+	    padding: 0 5px;
+	}
+	
+	.settingsValue ul{
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+	}
+	
+	.settingsValue ul li{
+		margin:0 0 2ex;
+	}
+	
+	.settingsButtons
+	{
+	    padding: 10px 0 10px 325px;
+	}
+	
+	.settingsValue select,
+	.settingsValue a img
+	{
+	    vertical-align: middle;
+	    margin: 0.5ex 0 2ex 0;
+	}
+	
+	
+	a.checkboxHelp img
+	{
+	    margin: 0;
+	}
+	
+	
+	.settingsValue ul li
+	{
+	  margin: 0 0 2ex 0;
+	}
+	
+	
+	.settingsPane select
+	{
+	    width: 40ex;
+	}
+	
+	.settingsPane input,
+	.settingsPane label
+	{
+	    vertical-align:middle;
+	}
+	
+	#presentationSettingsPane select
+	{
+	    width: 25ex;
+	}
+	
+	
+	label#lblWindowSizeCustom,
+	label#lblWindowSizePercent
+	{
+	    float: left;
+	    width: 25ex;
+	}
+	
+	.settingsSeparator
+	{
+	    clear: both;
+	    width: 100%;
+	    height: 1px;
+	    background: #FFF url(../images/FadeLine.gif) no-repeat top left;
+	}

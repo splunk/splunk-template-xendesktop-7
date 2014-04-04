@@ -1,0 +1,32 @@
+<form>
+  <label>Rebuild Site Lookup File</label>
+  
+  <fieldset autoRun="false">
+    
+    <input type="time" searchWhenChanged="false">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	The site lookup table is named <code>lookup_sites.csv</code> and contains information about the various XenDesktop Sites in your environment.
+	To rebuild the site lookup table, choose a time range above and click submit.  You may need to choose a larger time range such as "Last 7 days".
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table>
+      <title>XenDesktop Site Table</title>
+      <searchString>
+	| savedsearch "Lookup - Sites"
+      </searchString>
+    </table>
+  </row>
+ 
+  
+</form>

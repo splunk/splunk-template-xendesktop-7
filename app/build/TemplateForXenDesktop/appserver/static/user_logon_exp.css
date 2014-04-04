@@ -1,0 +1,7 @@
+/*
+ Hide the Activity Id field and search button
+*/
+
+#field1, #field2, #search_btn {
+    display: none;
+}

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>User Session Detail | Splunk</title>
+    <link rel="shortcut icon" href="{{SPLUNKWEB_URL_PREFIX}}/static/img/favicon_enterprise.ico" />
+    <link rel="stylesheet" type="text/css" href="{{SPLUNKWEB_URL_PREFIX}}/static/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="{{SPLUNKWEB_URL_PREFIX}}/static/css/pages/dashboard-simple-bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="{{SPLUNKWEB_URL_PREFIX}}/static/app/TemplateForXenDesktop/dashboard.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="{{SPLUNKWEB_URL_PREFIX}}/static/app/TemplateForXenDesktop/session-user.css" />
+    <!--[if IE 7]><link rel="stylesheet" href="{{SPLUNKWEB_URL_PREFIX}}/static/css/sprites-ie7.css" /><![endif]-->
+</head>
+
+<body class="simplexml preload">
+
+<div class="header">
+    <div id="placeholder-splunk-bar">
+        <a href="{{SPLUNKWEB_URL_PREFIX}}/app/launcher/home" class="brand" title="splunk &gt; listen to your data">splunk<strong>&gt;</strong></a>
+    </div>
+    <div id="placeholder-app-bar"></div>
+</div>
+
+<div class="dashboard-body container-fluid main-section-body" data-role="main">
+
+    <div class="dashboard-header clearfix">
+        <h2>User Session Detail</h2>
+	<p class="description"></p>
+    </div>
+    
+    <div class="fieldset">
+        <div class="input input-timerangepicker" id="field1">
+            <label>Time Range:</label>
+        </div>
+	
+        <div class="input input-text" id="field2">
+            <label>User Name:</label>
+        </div>
+	
+        <div class="input input-text" id="field3">
+            <label>Machine Name:</label>
+        </div>
+	
+        <div class="input form-submit" id="search_btn">
+            <button class="btn btn-primary submit">Search</button>
+        </div>
+    </div>
+    
+    <div class="dashboard-row dashboard-row1">
+        <div class="dashboard-cell" id="cell-detail" style="width: 100%;">
+            <div class="dashboard-panel" style="min-height: 100px">
+                <div class="panel-element-row">
+		    
+                    <div class="dashboard-element dataview" style="width: 100%">
+                        <div class="panel-head">
+			    <h3>Session Details</h3>
+                        </div>
+                        <div class="panel-body">
+			    <div id="user-session-details"></div>
+			</div>
+                    </div>
+		    
+                </div>
+            </div>
+        </div>
+	
+	<div class="dashboard-cell" id="cell-map" style="width: 0px; visibility: hidden; overflow: hidden">
+            <div class="dashboard-panel">                
+                <div class="panel-element-row">
+                    <div class="dashboard-element map" id="map-login" style="width: 100%">
+                        <div class="panel-head">
+                            <h3>Last Login Location</h3>
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	
+    </div>
+    
+    <div class="dashboard-row dashboard-row2">
+        <div class="dashboard-cell" style="width: 33.33%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    <div class="dashboard-element chart" id="chartCpu" style="width: 100%">
+			<div class="panel-head">
+                            <h3>Avg. Processor Time</h3>
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-cell" style="width: 33.33%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    <div class="dashboard-element chart" id="chartMem" style="width: 100%">
+			<div class="panel-head">
+                            <h3>Avg. Memory Usage in Bytes</h3>
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="dashboard-cell" style="width: 33.33%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    <div class="dashboard-element chart" id="chartIops" style="width: 100%">
+                        <div class="panel-head">
+                            <h3>Avg. IOPS</h3>
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-row dashboard-row3">
+        <div class="dashboard-cell" style="width: 100%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+		    
+                    <div class="dashboard-element table" id="table-user-processes" style="width: 100%">
+                        <div class="panel-head">
+			    <h3>Process Details</h3>
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+		    
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<div class="footer"></div>
+
+<script src="{{SPLUNKWEB_URL_PREFIX}}/config?autoload=1"></script>
+<script src="{{SPLUNKWEB_URL_PREFIX}}/static/js/i18n.js"></script>
+<script src="{{SPLUNKWEB_URL_PREFIX}}/static/js/build/simplexml.min/config.js"></script>
+
+<script type="text/x-underscore-tmpl" id="user-session-template" style="display:none">
+<table id="user-session-table">
+  <tbody>
+  
+    <%
+    for(var i=0, l=results.length; i<l; i++) {
+	var line=results[i];
+	for(var key in line) {
+            var attrName = key;
+            var attrValue = line[key];
+    %>	    
+	    <tr>
+		<td><%= attrName %></td>
+		<td><%= attrValue %></td>
+	    </tr>
+    <%
+        }
+    }
+    %>
+    
+  </tbody>
+</table>
+</script>
+
+<script type="text/javascript">
+    
+require.config({
+    baseUrl: "{{SPLUNKWEB_URL_PREFIX}}/static/js",
+    waitSeconds: 0 // Disable require.js load timeout
+});
+require([
+    "splunkjs/mvc",
+    "splunkjs/mvc/utils",
+    "splunkjs/mvc/tokenutils",
+    "underscore",
+    "jquery",
+    "splunkjs/mvc/simplexml",
+    "splunkjs/mvc/headerview",
+    "splunkjs/mvc/footerview",
+    "splunkjs/mvc/simplexml/dashboard",
+    "splunkjs/mvc/simplexml/element/chart",
+    "splunkjs/mvc/simplexml/element/html",
+    "splunkjs/mvc/simplexml/element/map",
+    "splunkjs/mvc/simplexml/element/single",
+    "splunkjs/mvc/simplexml/element/table",
+    "splunkjs/mvc/simpleform/input/text",
+    "splunkjs/mvc/simpleform/input/timerange",
+    "splunkjs/mvc/simpleform/input/submit",
+    "splunkjs/mvc/searchmanager",
+    "splunkjs/mvc/postprocessmanager",
+    "splunkjs/mvc/simplexml/urltokenmodel",
+    "splunkjs/mvc/dataview"
+    ],
+    function(
+        mvc,
+        utils,
+        TokenUtils,
+        _,
+        $,
+        DashboardController,
+        HeaderView,
+        FooterView,
+        Dashboard,
+        ChartElement,
+        HtmlElement,
+        MapElement,
+        SingleElement,
+	TableElement,
+        TextInput,
+        TimeRangeInput,
+        SubmitButton,
+        SearchManager,
+        PostProcessManager,
+        UrlTokenModel,
+	DataView) {
+
+	// AUTO-COMPILED JAVASCRIPT
+        var pageLoading = true;
+
+        //
+        // Create form token namespaces
+        //
+        var urlTokenModel = new UrlTokenModel();
+        mvc.Components.registerInstance('url', urlTokenModel);
+        var defaultTokenModel = mvc.Components.getInstance('default', {create: true});
+        var submittedTokenModel = mvc.Components.getInstance('submitted', {create: true});
+
+        urlTokenModel.on('url:navigate', function() {
+            defaultTokenModel.set(urlTokenModel.toJSON());
+            if (!_.isEmpty(urlTokenModel.toJSON()) && !_.all(urlTokenModel.toJSON(), _.isUndefined)){
+                submitTokens();
+            } else {
+                submittedTokenModel.clear();
+            }
+        });
+
+        // Initialize non-input tokens
+        defaultTokenModel.set(urlTokenModel.toJSON());
+
+        var defaultUpdate = {};
+
+        var submitTokens = function() {
+            submitTokensSoon(pageLoading);  // captures from enclosing scope before debounce
+        };
+
+        var submitTokensSoon = _.debounce(function(updateHistory) {
+            submittedTokenModel.set(defaultTokenModel.toJSON());
+            urlTokenModel.saveOnlyWithPrefix('form\.', defaultTokenModel.toJSON(), {
+                replaceState: updateHistory
+            });
+        });
+
+        //***********************************
+        // Session Detail Search
+        //***********************************
+	var searchUserSession = new SearchManager({
+            "id": "searchUserSession",
+            "cancelOnUnload": true,
+            "latest_time": "$latest$",
+            "earliest_time": "$earliest$",
+            "search": 'search `xd_index` sourcetype=xendesktop:*:session MachineName="$machinename$" UserName="$username$" | \
+stats latest(UserName) AS "User Name" latest(MachineName) AS "Machine Name" latest(_time) AS CurrentTime latest(StartTime) AS StartTime latest(ClientName) AS "Client Name" \
+latest(ClientVersion) AS "Client Version" latest(SessionKey) AS "Session Key" latest(ClientAddress) AS "Client Address" latest(CatalogName) AS "Catalog Name" \
+latest(ControllerDNSName) AS "Controller" latest(DesktopGroupName) AS "Desktop Group" latest(DesktopKind) AS "Destktop Kind" latest(EstablishmentDuration) AS "Establishment Duration" \
+latest(OSType) AS "OS Type" latest(SessionType) AS "Session Type" | \
+eval "Start Time" = strftime(StartTime, "%m/%d/%Y %H:%M:%S") | \
+convert timeformat="%m/%d/%Y %H:%M:%S" mktime(StartTime) | \
+eval SessionDuration = tostring(CurrentTime - StartTime, "duration") | \
+table "User Name" "Machine Name" "Start Time" SessionDuration "Client Name" "Client Version" "Client Address" "Session Key" "Catalog Name" "Controller" "Desktop Group" "Desktop Kind" "Establishment Duration" "OS Type" "Session Type" | \
+rename SessionDuration AS "Session Duration"',
+            "app": utils.getCurrentApp(),
+            "auto_cancel": 90,
+            "preview": true
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	//***********************************
+        // Post Process Search for Map
+        //***********************************
+	var postProcessMap = new PostProcessManager({
+            "search": 'iplocation "Client Address" | geostats count',
+            "managerid": "searchUserSession",
+            "id": "postProcessMap"
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	//***********************************
+        // Session Processes Search
+        //***********************************
+	var searchUserSessionProcess = new SearchManager({
+	   "id": "searchUserSessionProcess",
+	   "cancelOnUnload": true,
+           "latest_time": "$latest$",
+           "earliest_time": "$earliest$",
+	   "search": 'search `xd_perfmon_index` host="$machinename$" sourcetype="PerfmonMk:Process" \
+[search `xd_index` sourcetype="xendesktop:*:SessionProcess" host="$machinename$" | multikv | search UserName="$username$" | stats count by ProcessId | fields ProcessId | rename ProcessId AS ID_Process] | \
+rename IO_Write_Operations/sec AS iowrite | rename IO_Read_Operations/sec AS ioread | \
+eval iops = iowrite + ioread | \
+stats count by _time instance %_Processor_Time Working_Set_-_Private iops ioread iowrite'
+	}, {tokens: true, tokenNamespace: "submitted"});
+	
+	
+	//***********************************
+        // Processor Time Chart
+        //***********************************
+	var postProcessUserSessionProcessCpu = new PostProcessManager({
+	    "search": 'timechart avg(%_Processor_Time) AS "Avg. % Processor Time" BY instance',
+	    "managerid": "searchUserSessionProcess",
+	    "id": "postProcessUserSessionCpu"
+	    }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var chartCpu = new ChartElement({
+            "id": "chartCpu",
+            "charting.chart": "line",
+            "charting.drilldown": "all",
+            "charting.layout.splitSeries": "0",
+            "charting.chart.style": "minimal",
+            "resizable": true,
+            "charting.axisY.scale": "linear",
+            "charting.legend.labelStyle.overflowMode": "ellipsisMiddle",
+            "charting.legend.placement": "bottom",
+            "charting.axisTitleX.visibility": "collapsed",
+            "charting.axisX.sliceCollapsingThreshold": "0.01",
+	    "charting.axisY.maximumNumber": "100",
+	    "charting.chart.minimumNumber": "0",
+            "charting.axisX.scale": "linear",
+            "charting.chart.stackMode": "default",
+            "charting.axisTitleY.visibility": "visible",
+            "charting.chart.nullValueMode": "zero",
+            "managerid": "postProcessUserSessionCpu",
+            "el": $('#chartCpu')
+        }, {tokens: true}).render();
+	
+	//***********************************
+        // Memory Chart
+        //***********************************
+	var postProcessUserSessionProcessMem = new PostProcessManager({
+	    "search": 'timechart avg(Working_Set_-_Private) AS "Avg. Memory" BY instance',
+	    "managerid": "searchUserSessionProcess",
+	    "id": "postProcessUserSessionMem"
+	    }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var chartMem = new ChartElement({
+            "id": "chartMem",
+            "charting.chart": "line",
+            "charting.drilldown": "all",
+            "charting.layout.splitSeries": "0",
+            "charting.chart.style": "minimal",
+            "resizable": true,
+            "charting.axisY.scale": "linear",
+            "charting.legend.labelStyle.overflowMode": "ellipsisMiddle",
+            "charting.legend.placement": "bottom",
+            "charting.axisTitleX.visibility": "collapsed",
+            "charting.chart.sliceCollapsingThreshold": "0.01",
+            "charting.axisX.scale": "linear",
+            "charting.chart.stackMode": "default",
+            "charting.axisTitleY.visibility": "visible",
+            "charting.chart.nullValueMode": "zero",
+            "managerid": "postProcessUserSessionMem",
+            "el": $('#chartMem')
+        }, {tokens: true}).render();
+	
+	//***********************************
+        // IOPS Chart
+        //***********************************
+	var postProcessUserSessionProcessIops = new PostProcessManager({
+	    "search": 'timechart avg(iops) AS "Avg. IOPS" by instance',
+	    "managerid": "searchUserSessionProcess",
+	    "id": "postProcessUserSessionIops"
+	    }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var chartIops = new ChartElement({
+            "id": "chartIops",
+            "charting.chart": "line",
+            "charting.drilldown": "all",
+            "charting.layout.splitSeries": "0",
+            "charting.chart.style": "minimal",
+            "resizable": true,
+            "charting.axisY.scale": "linear",
+            "charting.legend.labelStyle.overflowMode": "ellipsisMiddle",
+            "charting.legend.placement": "bottom",
+            "charting.axisTitleX.visibility": "collapsed",
+            "charting.chart.sliceCollapsingThreshold": "0.01",
+            "charting.axisX.scale": "linear",
+            "charting.chart.stackMode": "default",
+            "charting.axisTitleY.visibility": "visible",
+            "charting.chart.nullValueMode": "zero",
+            "managerid": "postProcessUserSessionIops",
+            "el": $('#chartIops')
+        }, {tokens: true}).render();
+	
+	//***********************************
+        // Process Details Table
+        //***********************************
+	var postProcessUserSessionProcessDetail = new PostProcessManager({
+	    "search": 'stats avg(%_Processor_Time) AS "Avg. % Processor Time" avg(Working_Set_-_Private) AS "Avg. Memory" avg(iops) AS "Avg. IOPS" avg(ioread) AS "Avg. Read IO" avg(iowrite) AS "Avg. Write IO" BY instance',
+	    "managerid": "searchUserSessionProcess",
+	    "id": "postProcessUserSessionDetail"
+	    }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var tableProcesses = new TableElement({
+            "id": "tableProcesses",
+            "displayRowNumbers": false,
+            "managerid": "postProcessUserSessionDetail",
+            "el": $('#table-user-processes')
+        }, {tokens: true}).render();
+
+	
+	//***********************************
+        // DataView - pivots the table
+        //***********************************
+	new DataView({
+            id: "session-details",
+            managerid: "searchUserSession",
+            template: $('#user-session-template').html(),
+            el: $('#user-session-details')
+        }, {tokens: true}).render();
+	
+	//***********************************
+        // Map Element
+        //***********************************
+	new MapElement({
+            "id": "map",
+            "resizable": true,
+	    "height": "200px", 
+            "managerid": "postProcessMap",
+	    "mapping.tileLayer.url": "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+	    "mapping.tileLayer.subdomains": "[a,b,c]",
+	    "mapping.tileLayer.minZoom": 0,
+	    "mapping.tileLayer.maxZoom": 18,
+	    "mapping.tileLayer.attribution": "Map data (c) 2012 OpenStreetMap contributors, CC-BY-SA.",
+            "el": $('#map-login')
+        }, {tokens: true}).render();
+
+	postProcessMap.on("search:done", function(properties) {
+	    if(properties.content.resultCount > 0) {
+		
+		// Show Map
+		$("#cell-detail").css("width","50%");
+		$("#cell-map")
+		    .css("visibility", "visible")
+		    .css("width", "50%");
+	    }
+	});
+
+        //***********************************
+        // Splunk Dashboard UI
+        //***********************************
+        new HeaderView({
+            id: 'header',
+            section: 'dashboards',
+            el: $('.header'),
+            acceleratedAppNav: true
+        }, {tokens: true}).render();
+
+        new FooterView({
+            id: 'footer',
+            el: $('.footer')
+        }, {tokens: true}).render();
+
+        new Dashboard({
+            id: 'dashboard',
+            el: $('.dashboard-body')
+        }, {tokens: true}).render();
+	
+
+
+        //****************************************
+	// Form Inputs
+	//****************************************
+        var field1 = new TimeRangeInput({
+            "id": "field1",
+            "preset": "Last 24 hours",
+            "earliest_time": "$earliest$",
+            "latest_time": "$latest$",
+            "el": $('#field1')
+        }, {tokens: true}).render();
+
+        var field2 = new TextInput({
+            "id": "field2",
+            "value": "$form.username$",
+            "el": $('#field2')
+        }, {tokens: true}).render();
+
+        field2.on("change", function(value, input, options) {
+            if (!field2.hasValue()) {
+                defaultUpdate['field2'] = true;
+                this.val(field2.settings.get("default"));
+                return;
+            }
+            
+            var newValue = field2.val() || field2.settings.get("default");
+            var newComputedValue = newValue;
+
+            // Update computed value
+            defaultTokenModel.set("username", newComputedValue);
+        });
+        defaultUpdate['field2'] = true;
+        field2.trigger("change", field2.val(), field2);
+
+        var field3 = new TextInput({
+            "id": "field3",
+            "value": "$form.machinename$",
+            "el": $('#field3')
+        }, {tokens: true}).render();
+
+        field3.on("change", function(value, input, options) {
+            if (!field3.hasValue()) {
+                defaultUpdate['field3'] = true;
+                this.val(field3.settings.get("default"));
+                return;
+            }
+            
+            var newValue = field3.val() || field3.settings.get("default");
+            var newComputedValue = newValue;
+
+            // Update computed value
+            defaultTokenModel.set("machinename", newComputedValue);
+        });
+        defaultUpdate['field3'] = true;
+        field3.trigger("change", field3.val(), field3);
+
+        //
+        // Handle form submit
+        //
+        var submit = new SubmitButton({
+            id: 'submit',
+            el: $('#search_btn')
+        }, {tokens: true}).render();
+
+        submit.on("submit", function() {
+            submitTokens();
+        });
+
+        //
+        // Submit any form data
+        //
+        if (!_.isEmpty(urlTokenModel.toJSON())){
+            submitTokens();
+        }
+
+        //
+        // Signal the dashboard is done loading.
+        //
+        DashboardController.ready();
+        pageLoading = false;
+    }
+);
+</script>
+</body>
+</html>

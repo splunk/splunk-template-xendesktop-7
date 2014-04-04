@@ -1,0 +1,51 @@
+<form script="service_health.js" stylesheet="service_health.css">
+  <label>Unexpected Service Terminations</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="SiteName">
+      <label>Site:</label>
+      <choice value="*">All Sites</choice>
+      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
+	<![CDATA[| inputlookup lookup_host_site.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+    <input type="text" token="machinename" id="server">
+      <label>Machine:</label>
+      <seed>*</seed>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	This table shows any services that have terminated unexpectedly.
+      </p>
+    </html>
+  </row>
+  
+  <row>
+  
+    <table>
+      <title>Unexpected Service Terminations</title>
+      <searchString>
+	<![CDATA[
+	`xd_winevents_index` source=wineventlog:system terminated ("EventCode=7034" OR "EventCode=7031") SiteName="$SiteName$" host="$machinename$" |
+	rex field=Message "(?i)^The (?<Service_Name>.*) service terminated unexpectedly.\s+It has done this (?<num_failures>\d+)" |
+	table _time SiteName host EventCode Service_Name num_failures Message |
+	rename host AS Machine SiteName AS Site EventCode AS "Event Code" Service_Name AS "Service Name" num_failures AS "Failure Count"
+	]]>
+      </searchString>
+    </table>
+    
+  </row>
+  
+</form>

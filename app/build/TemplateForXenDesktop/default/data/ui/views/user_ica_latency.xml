@@ -1,0 +1,54 @@
+<form>
+  <label>User ICA Latency</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="SiteName">
+      <label>Site:</label>
+      <choice value="*">All Sites</choice>
+      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
+	<![CDATA[| inputlookup lookup_host_site.csv]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+  
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+
+    <input type="text" token="server">
+      <label>Server:</label>
+      <seed>*</seed>
+    </input>
+    
+    <input type="text" token="username">
+      <label>User Name:</label>
+      <default>*</default>
+      <seed>*</seed>
+    </input>
+    
+    <input type="text" token="meanLatency">
+      <label>Latency greather than:</label>
+      <default>0</default>
+      <seed>0</seed>
+    </input>
+  </fieldset>
+  
+  <row>
+    <table>
+      <title>User ICA Latency</title>
+      <searchString>
+	`xd_index` sourcetype="xendesktop:*:session" MachineName="$server$" SiteName="$SiteName$" UserName="$username$" StartTime!="" |
+	eval UserName = lower(UserName) |
+	rename MachineName AS host |
+	join host UserName [search `xd_perfmon_index` sourcetype="PerfmonMK:ICASession" host="$server$" UserName!="_Server_Total" | stats count by host UserName Latency_-_Session_Average | fields host UserName Latency_-_Session_Average | eval UserName = lower(UserName)] |
+	makemv delim=";" ApplicationsInUse |
+	stats values(ClientName) as Device values(IPAddress) as "IP Address" values(ClientVersion) as "Client Version" values(ApplicationsInUse) as Applications mean(Latency_-_Session_Average) as ml BY host UserName StartTime |
+	where ml >= $meanLatency$ |
+	rename host AS Host UserName AS "User Name" ml AS "Mean Latency" StartTime AS "Log on Time"
+      </searchString>
+    </table>
+    
+  </row>
+</form>

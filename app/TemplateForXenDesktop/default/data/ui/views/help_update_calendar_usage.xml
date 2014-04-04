@@ -1,0 +1,33 @@
+<form>
+  <label>Update Calendar Usage Report</label>
+  
+  <fieldset autoRun="false">
+    
+    <input type="time" searchWhenChanged="false">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	The Usage Calendar view uses a scheuled saved search to populate a file named <code>calendar_users.csv</code>.  This file can be manually updated by choosing a time range above and clicking submit.
+	You may need to choose a larger time range such as "Last 30 days", or "All time"
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table>
+      <title>Calendar - Usage Table</title>
+      <searchString>
+	| savedsearch "Lookup - Calendar - Users by Day"
+      </searchString>
+      <drilldown>off</drilldown>
+    </table>
+  </row>
+ 
+  
+</form>

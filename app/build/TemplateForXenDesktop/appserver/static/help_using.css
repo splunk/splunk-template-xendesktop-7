@@ -1,0 +1,12 @@
+table {
+   width: 90%;
+}
+
+th {
+   text-align: left;
+}
+
+td {
+   border: 1px solid #000;
+   padding: 15px;
+}

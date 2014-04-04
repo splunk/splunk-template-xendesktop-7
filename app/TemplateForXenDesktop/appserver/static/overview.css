@@ -1,0 +1,16 @@
+#health .single-value :hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+div.info1 {
+    min-height: 14px;
+    padding-left: 16px;
+    background: url(/static/app/SplunkAppForXD/images/info.gif) no-repeat center left;
+}
+
+.info {
+    background: url(/static/app/SplunkAppForXD/images/info.gif) no-repeat center left;
+    margin: 0px 0px 0px 16px;
+    padding: 0px 0px 0px 16px;
+}

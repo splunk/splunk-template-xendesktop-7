@@ -1,0 +1,5 @@
+/*  Hide the computed view field  */
+#tblAlerts th:nth-child(8),
+#tblAlerts td:nth-child(8) {
+    display: none;
+}

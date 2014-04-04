@@ -1,0 +1,36 @@
+<form>
+  <label>Rebuild Machine to Site Lookup File</label>
+  
+  <fieldset autoRun="false">
+    
+    <input type="time" searchWhenChanged="false">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	The machine to site lookup table is named <code>lookup_hostt_site.csv</code> and correlates machines to XenDesktop sites.
+	This is particularly helpful on the performance dashboards as the performance data gathered from Windows perfmon does not have a concept of a site.
+	The same is true for information gathered from Windows Event Logs or any data that does not have a site concept.
+      </p>
+      <p>
+	To rebuild the machine to site lookup table, choose a time range above and click submit.  You may need to choose a larger time range such as "Last 7 days".
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    <table>
+      <title>Machine to Site Table</title>
+      <searchString>
+	| savedsearch "Lookup - Host to Site"
+      </searchString>
+    </table>
+  </row>
+ 
+  
+</form>

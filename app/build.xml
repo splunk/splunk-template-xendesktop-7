@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="TemplateForXenDesktop" default="package">
+	<property name="APP" value="TemplateForXenDesktop"/>
+
+	<property name="BROKERADDON" value="TA-XD7-Broker"/>
+	<property name="VDAADDON" value="TA-XD7-VDA"/>
+
+	<property name="VERSION" value="1.0.0"/>
+	<buildnumber/>
+
+	<property name="build.dir" value="build"/>
+	<property name="addon.dir" value="build/${APP}/appserver/addons" />
+	<property name="dist.file" value="${build.dir}/dist/${APP}-${VERSION}.tar.gz"/>
+	
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+	</target>
+
+	<target name="package" depends="build,build-addons">
+		<mkdir dir="${build.dir}/dist" />
+		<tar destfile="${dist.file}" longfile="gnu" compression="gzip">
+			<tarfileset dir="${build.dir}" filemode="755" username="splunk" group="splunk">
+				<include name="${APP}/**"/>
+			</tarfileset>
+		</tar>
+	</target>
+
+	<target name="build" depends="build-app,build-addons">
+	</target>
+
+	<target name="build-addons" depends="build-broker,build-vda">
+	</target>
+
+	<target name="build-app">
+		<mkdir dir="${build.dir}/${APP}"/>
+
+		<copy todir="${build.dir}/${APP}" filtering="off" verbose="on">
+			<fileset dir="${APP}">
+				<exclude name="**/.*" />
+				<exclude name="local/.*" />
+				<exclude name="**/*-gist" />
+				<exclude name="**/*.xcf" />
+				<exclude name="**/*.d/**" />
+				<exclude name="default/app.conf" />
+				<exclude name="lookups/calendar_users.csv" />
+				<exclude name="lookups/lookup_sites.csv" />
+				<exclude name="lookups/lookup_host_site.csv" />
+				<exclude name="lookups/lookup_pubapp.csv" />
+				<exclude name="lookups/winHosts.csv" />
+				<exclude name="default/viewstates.conf" />
+			</fileset>
+		</copy>
+
+		<echo>Build Number is ${build.number}</echo>
+		<copy todir="${build.dir}/${APP}/default" file="${APP}/default/app.conf" verbose="on">
+			<filterset>
+				<filter token="BUILDNUMBER" value="${build.number}" />
+			</filterset>
+			<filterset>
+				<filter token="VERSION" value="${VERSION}" />
+			</filterset>
+		</copy>
+		
+		<copy todir="${build.dir}/${APP}/appserver/static" file="${build.dir}/${APP}/Installation.pdf" verbose="on">
+		</copy>
+
+	</target>
+
+
+	<target name="build-vda">
+		<mkdir dir="${addon.dir}"/>
+		
+		<copy todir="${addon.dir}/${VDAADDON}" filtering="off" verbose="on">
+			<fileset dir="${VDAADDON}">
+				<exclude name="**/.*" />
+				<exclude name="local/**" />
+				<exclude name="**/*-gist" />
+				<exclude name="**/*.xcf" />
+				<exclude name="**/*.d/**" />
+				<exclude name="default/app.conf" />
+				<exclude name="bin/GetClientProductId.path" />
+				<exclude name="bin/powershell/GetClientProductId.ps1" />
+				<exclude name="bin/powershell/GetCliProdId.exe" />
+				<exclude name="bin/powershell/GPO-Ops-Log.log" />
+			</fileset>
+		</copy>
+		
+		<copy todir="${addon.dir}/${VDAADDON}/default" file="${VDAADDON}/default/app.conf" verbose="on">
+			<filterset>
+				<filter token="BUILDNUMBER" value="${build.number}"/>
+			</filterset>
+			<filterset>
+				<filter token="VERSION" value="${VERSION}"/>
+			</filterset>
+		</copy>
+	</target>
+	
+	<target name="build-broker">
+		<mkdir dir="${addon.dir}"/>
+		
+		<copy todir="${addon.dir}/${BROKERADDON}" filtering="off" verbose="on">
+			<fileset dir="${BROKERADDON}">
+				<exclude name="**/.*" />
+				<exclude name="local/**" />
+				<exclude name="**/*-gist" />
+				<exclude name="**/*.xcf" />
+				<exclude name="**/*.d/**" />
+				<exclude name="default/app.conf" />
+			</fileset>
+		</copy>
+		
+		<copy todir="${addon.dir}/${BROKERADDON}/default" file="${BROKERADDON}/default/app.conf" verbose="on">
+			<filterset>
+				<filter token="BUILDNUMBER" value="${build.number}"/>
+			</filterset>
+			<filterset>
+				<filter token="VERSION" value="${VERSION}"/>
+			</filterset>
+		</copy>
+	</target>
+	
+</project>
+

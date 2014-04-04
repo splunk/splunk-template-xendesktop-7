@@ -1,0 +1,1 @@
+gwmi win32_process | select ProcessId,@{n='UserName';e={$_.getowner().user}} | where {$_.UserName -ne "SYSTEM" -and $_.UserName -ne "LOCAL SERVICE" -and $_.UserName -ne "NETWORK SERVICE" -and $_.UserName -ne $null}
