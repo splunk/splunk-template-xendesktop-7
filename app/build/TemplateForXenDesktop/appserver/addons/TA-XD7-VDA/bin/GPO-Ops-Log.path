@@ -1,1 +1,0 @@
-$SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe -command  " &'$SPLUNK_HOME\etc\apps\TA-XD7-VDA\bin\powershell\GPO-Ops-Log.ps1' -logName 'Microsoft-Windows-GroupPolicy/Operational' -positionFileName 'GPO-Ops-Log.log'"

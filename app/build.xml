@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="TemplateForXenDesktop" default="package">
-	<property name="APP" value="TemplateForXenDesktop"/>
+<project name="TemplateForXenDesktop7" default="package">
+	<property name="APP" value="TemplateForXenDesktop7"/>
 
 	<property name="BROKERADDON" value="TA-XD7-Broker"/>
 	<property name="VDAADDON" value="TA-XD7-VDA"/>
 
-	<property name="VERSION" value="1.0.0"/>
+	<property name="VERSION" value="1.1.1"/>
 	<buildnumber/>
 
 	<property name="build.dir" value="build"/>

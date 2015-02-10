@@ -1,0 +1,65 @@
+<form stylesheet="app_crash.css" script="app_crash.js">
+  <label>Application Crashes</label>
+  
+  <searchTemplate>
+    `xd_winevents_index` sourcetype="WinEventLog:Application" Type="Error" EventCode &gt;= 1000 EventCode &lt;= 1011 host="$machinename$" SiteName="$SiteName$"|
+    stats count by _time host Faulting_app_name EventCode Exception_code Message
+  </searchTemplate>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="SiteName">
+      <label>Site:</label>
+      <choice value="*">All Sites</choice>
+      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
+	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 24 hours</default>
+    </input>
+    
+    <input type="text" token="machinename">
+      <label>Machine:</label>
+      <seed>*</seed>
+    </input>
+
+  </fieldset>
+  
+  <row>
+    <chart id="chartApps">
+      <title>Application Crash or Hang</title>
+      <searchPostProcess>
+	chart count by Faulting_app_name
+      </searchPostProcess>
+      <option name="charting.axisTitleX.visibility">visible</option>
+      <option name="charting.axisTitleY.visibility">visible</option>
+      <option name="charting.axisX.scale">linear</option>
+      <option name="charting.axisY.scale">linear</option>
+      <option name="charting.chart">pie</option>
+      <option name="charting.chart.nullValueMode">gaps</option>
+      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+      <option name="charting.chart.stackMode">default</option>
+      <option name="charting.chart.style">shiny</option>
+      <option name="charting.drilldown">all</option>
+      <option name="charting.layout.splitSeries">0</option>
+      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+      <option name="charting.legend.placement">right</option>
+    </chart>
+  </row>
+  
+  <row>
+    <table id="tblCrashReport">
+      <searchPostProcess>
+	sort - _time |
+	eval Time = strftime(_time, "%Y-%m-%d %H:%M:%S") |
+	table Time host Faulting_app_name EventCode Exception_code Message |
+	rename host AS Machine Faulting_app_name AS "Application" EventCode AS "Event Code" Exception_code AS "Exception Code"
+      </searchPostProcess>
+    </table>
+  </row>
+  
+</form>

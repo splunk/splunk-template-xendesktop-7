@@ -1,0 +1,45 @@
+<form stylesheet="user_logon_exp_wizard.css">
+  <label>User Experience - Logon Performance</label>
+  
+  <fieldset autoRun="false">
+    <input type="time" searchWhenChanged="true">
+      <default>Last 24 hours</default>
+      <label>Time Range:</label>
+    </input>
+    
+    <input type="text" token="username">
+      <label>User Name:</label>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+        This dashboard helps determine a user's log on experience including Group Policy processing and Client Side Extension load times. Enter a user name below and press the Search button to select a user's log on instance to inspect.
+      </p>
+    </html>  
+  </row>
+  
+  <row>
+    <table id="userSessions">
+      <searchString>
+        `xd_winevents_index` sourcetype="WinEventLog:Microsoft-Windows-GroupPolicy/Operational" UserName="$username$" Id=4001 |
+        table UserName TimeCreated host ActivityId |
+        rename UserName AS "User Name" TimeCreated AS "Logon Time" host AS "Server"
+      </searchString>
+      
+      <title>User Sessions</title>
+      
+      <drilldown>
+        <link>
+          <![CDATA[
+            /app/TemplateForXenDesktop7/user_logon_experience?form.username=$row.User Name$&form.ActivityId=$row.ActivityId$&earliest=$earliest$&latest=$latest$
+          ]]>
+         </link>
+     </drilldown>
+      
+    </table>
+  </row>
+  
+</form>

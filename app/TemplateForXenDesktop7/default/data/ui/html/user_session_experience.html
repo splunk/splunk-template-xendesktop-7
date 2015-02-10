@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>User Session Experience | Splunk</title>
+    <link rel="shortcut icon" href="{{SPLUNKWEB_URL_PREFIX}}/static/img/favicon_enterprise.ico" />
+    <link rel="stylesheet" type="text/css" href="{{SPLUNKWEB_URL_PREFIX}}/static/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="{{SPLUNKWEB_URL_PREFIX}}/static/css/pages/dashboard-simple-bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" media="all" href="{{SPLUNKWEB_URL_PREFIX}}/static/app/TemplateForXenDesktop7/dashboard.css" />
+    <!--[if IE 7]><link rel="stylesheet" href="{{SPLUNKWEB_URL_PREFIX}}/static/css/sprites-ie7.css" /><![endif]-->
+    
+    <style>
+	img.toggle {
+	    padding-right: 15px;
+	    cursor: pointer;
+	}
+    </style>
+</head>
+
+<body class="simplexml preload">
+
+<div class="header">
+    <div id="placeholder-splunk-bar">
+        <a href="{{SPLUNKWEB_URL_PREFIX}}/app/launcher/home" class="brand" title="splunk &gt; listen to your data">splunk<strong>&gt;</strong></a>
+    </div>
+    <div id="placeholder-app-bar"></div>
+</div>
+
+<div class="dashboard-body container-fluid main-section-body" data-role="main">
+
+    <div class="dashboard-header clearfix">
+        <h2>User Session Experience</h2>
+	<p class="description"></p>
+    </div>
+    
+    <div class="fieldset">
+        <div class="input input-timerangepicker" id="field1">
+            <label>Time Range:</label>
+        </div>
+	
+        <div class="input input-text" id="field2">
+            <label>User Name:</label>
+        </div>
+	
+        <div class="input input-text" id="field3">
+            <label>Machine Name:</label>
+        </div>
+	
+        <div class="input form-submit" id="search_btn">
+            <button class="btn btn-primary submit">Search</button>
+        </div>
+    </div>
+    
+    <div class="dashboard-row dashboard-row1">
+        <div class="dashboard-cell" style="width: 50%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    
+                    <div class="dashboard-element single" id="singleCPU" style="width: 100%">
+                        <div class="panel-head">
+                            <h3>Average Host Processor Time</h3>
+			    <img id="imgHostCpu" class="toggle" title="Show/hide details" src="/static/app/TemplateForXenDesktop7/expand.png" style="float: right; display: none;" />
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+		    
+		    <div style="visibility: hidden; height: 0px; overflow: hidden; clear: both" id="chartProcTimeCell">
+			<div class="dashboard-element chart" id="chartProcTime" style="width: 100%">
+			    <div class="panel-body"></div>
+			</div>
+		    </div>
+		    
+                </div>
+            </div>
+        </div>
+	
+	<div class="dashboard-cell" style="width: 50%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    
+                    <div class="dashboard-element single" id="singleMem" style="width: 100%">
+                        <div class="panel-head">
+                            <h3>Average Percent Available Memory</h3>
+			    <img id="imgHostMem" class="toggle" title="Show/hide details" src="/static/app/TemplateForXenDesktop7/expand.png" style="float: right; display: none;" />
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+		    
+		    <div style="visibility: hidden; height: 0px; overflow: hidden; clear: both" id="chartMemTimeCell">
+			<div class="dashboard-element chart" id="chartMemTime" style="width: 100%">
+			    <div class="panel-body"></div>
+			</div>
+		    </div>
+		    
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-row">
+	<div class="dashboard-cell" style="width: 50%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    
+                    <div class="dashboard-element single" id="singleICALatency" style="width: 100%">
+                        <div class="panel-head">
+                            <h3>Average ICA Session Latency</h3>
+			    <img id="imgICALatency" class="toggle" title="Show/hide details" src="/static/app/TemplateForXenDesktop7/expand.png" style="float: right; display: none;" />
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+		    
+		    <div id="chartICALatencyCell">
+			<div class="dashboard-element chart" id="chartICALatency" style="width: 100%">
+			    <div class="panel-body"></div>
+			</div>
+		    </div>
+		    
+                </div>
+            </div>
+        </div>
+	
+        <div class="dashboard-cell" style="width: 50%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    <div class="dashboard-element chart" id="chartVC" style="width: 100%">
+                        <div class="panel-head">
+                            <h3>Virtual Channel Bandwidth Usage (bps)</h3>
+                        </div>
+                        <div class="panel-body"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard-row">
+        <div class="dashboard-cell" style="width: 100%;">
+            <div class="dashboard-panel clearfix">                
+                <div class="panel-element-row">
+                    <div class="dashboard-element html" id="element1" style="width: 100%">
+                        <div class="panel-body html">
+                                <div>
+				    <p></p>
+				    <p id="spanSessionDetails"></p>
+				</div>
+			</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<div class="footer"></div>
+
+<script src="{{SPLUNKWEB_URL_PREFIX}}/config?autoload=1"></script>
+<script src="{{SPLUNKWEB_URL_PREFIX}}/static/js/i18n.js"></script>
+<script src="{{SPLUNKWEB_URL_PREFIX}}/static/js/build/simplexml.min/config.js"></script>
+
+<script type="text/x-underscore-tmpl" id="templateSessionDetails" style="display:none">
+    <% var line = results[0]; %>
+    
+    <img src="/static/app/TemplateForXenDesktop7/images/info.png" /> <a id="aSessionDetails" href="/app/TemplateForXenDesktop7/session-user?form.username=<%= line['UserName'] %>&form.machinename=<%= line['host'] %>&earliest=<%= line['earliest'] %>&latest=<%= line['latest'] %>">More session details including process breakdown.</a>
+    
+</script>
+
+<script type="text/javascript">
+    
+require.config({
+    baseUrl: "{{SPLUNKWEB_URL_PREFIX}}/static/js",
+    waitSeconds: 0 // Disable require.js load timeout
+});
+require([
+    "splunkjs/mvc",
+    "splunkjs/mvc/utils",
+    "splunkjs/mvc/tokenutils",
+    "underscore",
+    "jquery",
+    "splunkjs/mvc/simplexml",
+    "splunkjs/mvc/headerview",
+    "splunkjs/mvc/footerview",
+    "splunkjs/mvc/simplexml/dashboard",
+    "splunkjs/mvc/simplexml/element/chart",
+    "splunkjs/mvc/simplexml/element/html",
+    "splunkjs/mvc/simplexml/element/map",
+    "splunkjs/mvc/simplexml/element/single",
+    "splunkjs/mvc/simpleform/input/text",
+    "splunkjs/mvc/simpleform/input/timerange",
+    "splunkjs/mvc/dataview",
+    "splunkjs/mvc/simpleform/input/submit",
+    "splunkjs/mvc/searchmanager",
+    "splunkjs/mvc/postprocessmanager",
+    "splunkjs/mvc/simplexml/urltokenmodel",
+    ],
+    function(
+        mvc,
+        utils,
+        TokenUtils,
+        _,
+        $,
+        DashboardController,
+        HeaderView,
+        FooterView,
+        Dashboard,
+        ChartElement,
+        HtmlElement,
+        MapElement,
+        SingleElement,
+        TextInput,
+        TimeRangeInput,
+	DataView,
+        SubmitButton,
+        SearchManager,
+        PostProcessManager,
+        UrlTokenModel) {
+
+	// AUTO-COMPILED JAVASCRIPT
+        var pageLoading = true;
+
+        //
+        // Create form token namespaces
+        //
+        var urlTokenModel = new UrlTokenModel();
+        mvc.Components.registerInstance('url', urlTokenModel);
+        var defaultTokenModel = mvc.Components.getInstance('default', {create: true});
+        var submittedTokenModel = mvc.Components.getInstance('submitted', {create: true});
+
+        urlTokenModel.on('url:navigate', function() {
+            defaultTokenModel.set(urlTokenModel.toJSON());
+            if (!_.isEmpty(urlTokenModel.toJSON()) && !_.all(urlTokenModel.toJSON(), _.isUndefined)){
+                submitTokens();
+            } else {
+                submittedTokenModel.clear();
+            }
+        });
+
+        // Initialize non-input tokens
+        defaultTokenModel.set(urlTokenModel.toJSON());
+
+        var defaultUpdate = {};
+
+        var submitTokens = function() {
+            submitTokensSoon(pageLoading);  // captures from enclosing scope before debounce
+        };
+
+        var submitTokensSoon = _.debounce(function(updateHistory) {
+            submittedTokenModel.set(defaultTokenModel.toJSON());
+            urlTokenModel.saveOnlyWithPrefix('form\.', defaultTokenModel.toJSON(), {
+                replaceState: updateHistory
+            });
+        });
+	
+	//***********************************
+        // ICA Latency Searches
+        //***********************************
+	var searchICALatency = new SearchManager({
+            "id": "searchICALatency",
+            "cancelOnUnload": true,
+            "latest_time": "$latest$",
+            "earliest_time": "$earliest$",
+            "search": 'search `xd_perfmon_index` sourcetype="PerfmonMk:ICASession" host="$machinename$" | rex field=instance ".*\\((?P<UserName>[^\\)]+)" | eval UserName=lower(UserName) | where UserName=lower("$username$") | bin _time span=1m | stats count by _time Latency_-_Session_Average',
+            "app": utils.getCurrentApp(),
+            "auto_cancel": 90,
+            "preview": true
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var postICALatency = new PostProcessManager({
+            "search": 'stats avg(Latency_-_Session_Average) as la | eval la=round(la,2)',
+            "managerid": "searchICALatency",
+            "id": "searchICALatency-Single"
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+        new PostProcessManager({
+            "search": 'timechart avg(Latency_-_Session_Average) AS "Latency - Session Average"',
+            "managerid": "searchICALatency",
+            "id": "searchICALatency-TimeChart"
+        }, {tokens: true, tokenNamespace: "submitted"});
+
+        //***********************************
+        // CPU Searches
+        //***********************************
+	var searchCPU = new SearchManager({
+            "id": "searchCPU",
+            "cancelOnUnload": true,
+            "latest_time": "$latest$",
+            "earliest_time": "$earliest$",
+            "search": 'search `xd_perfmon_index` sourcetype="PerfmonMk:Processor" instance="_Total" host="$machinename$" | bin _time span=1m | stats count by _time %_Processor_Time',
+            "app": utils.getCurrentApp(),
+            "auto_cancel": 90,
+            "preview": true
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var postCPUTime = new PostProcessManager({
+            "search": 'stats avg(%_Processor_Time) as cpu | eval cpu=round(cpu,2) | eval cpuPct = cpu." %" | rangemap field=cpu low=0-`CPU-Warning` elevated=`CPU-Warning`-`CPU-Critical` default=severe',
+            "managerid": "searchCPU",
+            "id": "searchCPU-Single"
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+        new PostProcessManager({
+            "search": 'eval wt = `CPU-Warning` | eval ct = `CPU-Critical` | timechart avg(%_Processor_Time) AS "% Processor Time" max(wt) AS "Warning Threshold" max(ct) AS "Critical Threshold"',
+            "managerid": "searchCPU",
+            "id": "searchCPU-TimeChart"
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+
+	//***********************************
+        // Memory Searches
+        //***********************************
+	var searchMem = new SearchManager({
+            "id": "searchMem",
+            "cancelOnUnload": true,
+            "latest_time": "$latest$",
+            "earliest_time": "$earliest$",
+            "search": 'search `xd_perfmon_index` source="perfmonmk:memory" host="$machinename$" | lookup winHosts host OUTPUT TotalPhysicalMemoryKB | eval Available_KB = (Available_Bytes / 1024) | eval pctFreeMem = round((Available_KB / TotalPhysicalMemoryKB) * 100, 2) | stats count by _time pctFreeMem Available_KB TotalPhysicalMemoryKB',
+            "app": utils.getCurrentApp(),
+            "auto_cancel": 90,
+            "preview": true
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var postMemPct = new PostProcessManager({
+            "search": 'stats avg(pctFreeMem) as mem | eval mem=round(mem,2) | eval memPct = mem." %" | rangemap field=mem low=30-100 elevated=15-30 severe=0-15 default=low',
+            "managerid": "searchMem",
+            "id": "searchMem-Single"
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	new PostProcessManager({
+            "search": 'eval pctUsedMem = 100 - pctFreeMem | eval warn = 100-`Mem-Warning` | eval critical = 100-`Mem-Critical` | timechart avg(pctUsedMem) AS "% Used Memory" max(warn) AS "Warning Threshold" max(critical) AS "Critical Threshold"timechart avg(pctUsedMem) AS "% Used Memory"',
+            "managerid": "searchMem",
+            "id": "searchMem-TimeChart"
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	
+	//***********************************
+        // Virtual Channel Searches
+        //***********************************	
+	var searchVC = new SearchManager({
+            "id": "searchVC",
+            "latest_time": "$latest$",
+            "search": '`xd_perfmon_index` host="$machinename$" sourcetype="PerfmonMk:ICASession" | rex field=instance ".*\\((?P<UserName>[^\\)]+)" | eval UserName=lower(UserName) | where UserName=lower("$username$") | timechart max(*_Bandwidt*) AS *_Bandwidt*',
+            "status_buckets": 0,
+            "cancelOnUnload": true,
+            "earliest_time": "$earliest$",
+            "app": utils.getCurrentApp(),
+            "auto_cancel": 90,
+            "preview": true
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	//***********************************
+        // Reports Searches
+        //***********************************	
+	var searchR1 = new SearchManager({
+            "id": "searchSessionDetails",
+            "latest_time": "$latest$",
+            "search": '`xd_index` | top 1 host | eval host="$machinename$" | eval UserName="$username$" | eval earliest=$earliest$ | eval latest=$latest$ | table earliest latest UserName host',
+            "status_buckets": 0,
+            "cancelOnUnload": true,
+            "earliest_time": "$earliest$",
+            "app": utils.getCurrentApp(),
+            "auto_cancel": 90,
+            "preview": true
+        }, {tokens: true, tokenNamespace: "submitted"});
+	
+	var test = new DataView({
+            id: "report-session-details",
+            managerid: "searchSessionDetails",
+            template: $('#templateSessionDetails').html(),
+            el: $('#spanSessionDetails')
+        }, {tokens: true}).render();
+	
+
+	//***********************************
+        // Toggle Function
+        //***********************************	
+	function toggle(button, target) {
+	    
+	    if(target.css("visibility") == "hidden" ) {
+		button.attr("src", "/static/app/TemplateForXenDesktop7/collapse.png");
+		target.css({
+		    "height": "auto",
+		    "visibility": "visible"});
+	    }
+	    else
+	    {
+		button.attr("src", "/static/app/TemplateForXenDesktop7/expand.png");
+		target.css({
+		    "height": "0px",
+		    "visibility": "hidden"});
+	    }
+	}
+	
+	//***********************************
+        // Click Handlers
+        //***********************************
+	postCPUTime.on('search:done', function(properties) {
+            
+	    // Set up toggle drop down for Host Performance
+	    $("#imgHostCpu").show();
+	    $("#imgHostCpu").click(function(){
+		toggle($(this), $("#chartProcTimeCell"));
+	    });
+        });
+	
+	postMemPct.on('search:done', function(properties) {
+            
+	    // Set up toggle drop down for Host Performance
+	    $("#imgHostMem").show();
+	    $("#imgHostMem").click(function(){
+		toggle($(this), $("#chartMemTimeCell"));
+	    });
+        });
+	
+	/*
+	postICALatency.on('search:done', function(properties) {
+            
+	    // Set up toggle drop down for Host Performance
+	    $("#imgICALatency").show();
+	    $("#imgICALatency").click(function(){
+		toggle($(this), $("#chartICALatencyCell"));
+	    });
+        });
+	*/
+
+        //***********************************
+        // Splunk Dashboard UI
+        //***********************************
+        new HeaderView({
+            id: 'header',
+            section: 'dashboards',
+            el: $('.header'),
+            acceleratedAppNav: true
+        }, {tokens: true}).render();
+
+        new FooterView({
+            id: 'footer',
+            el: $('.footer')
+        }, {tokens: true}).render();
+
+        new Dashboard({
+            id: 'dashboard',
+            el: $('.dashboard-body')
+        }, {tokens: true}).render();
+
+	
+	//****************************************
+	// CPU Visualization
+	//****************************************
+	var singleProcTime = new SingleElement({
+            "id": "singleProcTime",
+            "managerid": "searchCPU-Single",
+            "el": $('#singleCPU'),
+	    "classField": "range",
+            "field": "cpuPct",
+	    "underLabel": "% CPU"
+        }, {tokens: true}).render();
+	
+	var chartProcTime = new ChartElement({
+            "id": "chartProcTime",
+            "charting.chart": "line",
+            "charting.chart.nullValueMode": "connect",
+	    "charting.legend.placement": "bottom",
+	    "charting.axisY.maximumNumber": "100",
+	    "charting.axisY.minimumNumber": "0",
+            "resizable": true,
+            "charting.axisTitleX.visibility": "collapsed",
+            "managerid": "searchCPU-TimeChart",
+            "el": $('#chartProcTime')
+        }, {tokens: true}).render();
+
+	
+	//****************************************
+	// Mem Visualization
+	//****************************************
+	var singleMemTime = new SingleElement({
+            "id": "singleMemTime",
+            "managerid": "searchMem-Single",
+            "el": $('#singleMem'),
+	    "classField": "range",
+            "field": "memPct",
+	    "underLabel": "% Free Memory"
+        }, {tokens: true}).render();
+	
+	var chartMemTime = new ChartElement({
+            "id": "chartMemTime",
+            "charting.chart": "line",
+            "charting.chart.nullValueMode": "connect",
+	    "charting.legend.placement": "bottom",
+	    "charting.axisY.maximumNumber": "100",
+	    "charting.axisY.minimumNumber": "0",
+            "resizable": true,
+            "charting.axisTitleX.visibility": "collapsed",
+            "managerid": "searchMem-TimeChart",
+            "el": $('#chartMemTime')
+        }, {tokens: true}).render();
+        
+	//****************************************
+	// ICA Latency Visualization
+	//****************************************
+	var singleICALatency = new SingleElement({
+            "id": "singleICALatency",
+            "managerid": "searchICALatency-Single",
+            "el": $('#singleICALatency'),
+            "field": "la",
+	    "underLabel": "Average ICA Session Latency"
+        }, {tokens: true}).render();
+	
+	var chartProcTime = new ChartElement({
+            "id": "chartICALatency",
+            "charting.chart": "line",
+            "charting.chart.nullValueMode": "connect",
+	    "charting.legend.placement": "bottom",
+            "resizable": true,
+            "charting.axisTitleX.visibility": "collapsed",
+            "managerid": "searchICALatency-TimeChart",
+            "el": $('#chartICALatency')
+        }, {tokens: true}).render();
+	
+	//****************************************
+	// Virtual Channel Visualization
+	//****************************************
+        var chartVC = new ChartElement({
+            "id": "eVC",
+            "charting.chart": "line",
+            "charting.chart.nullValueMode": "connect",
+	    "charting.legend.placement": "bottom",
+	    "height": "400px",
+            "resizable": true,
+            "charting.axisTitleX.visibility": "collapsed",
+            "managerid": "searchVC",
+            "el": $('#chartVC')
+        }, {tokens: true}).render();
+        
+
+        //****************************************
+	// Form Inputs
+	//****************************************
+        var field1 = new TimeRangeInput({
+            "id": "field1",
+            "preset": "Last 24 hours",
+            "earliest_time": "$earliest$",
+            "latest_time": "$latest$",
+            "el": $('#field1')
+        }, {tokens: true}).render();
+
+        var field2 = new TextInput({
+            "id": "field2",
+            "value": "$form.username$",
+            "el": $('#field2')
+        }, {tokens: true}).render();
+
+        field2.on("change", function(value, input, options) {
+            if (!field2.hasValue()) {
+                defaultUpdate['field2'] = true;
+                this.val(field2.settings.get("default"));
+                return;
+            }
+            
+            var newValue = field2.val() || field2.settings.get("default");
+            var newComputedValue = newValue;
+
+            // Update computed value
+            defaultTokenModel.set("username", newComputedValue);
+        });
+        defaultUpdate['field2'] = true;
+        field2.trigger("change", field2.val(), field2);
+
+        var field3 = new TextInput({
+            "id": "field3",
+            "value": "$form.machinename$",
+            "el": $('#field3')
+        }, {tokens: true}).render();
+
+        field3.on("change", function(value, input, options) {
+            if (!field3.hasValue()) {
+                defaultUpdate['field3'] = true;
+                this.val(field3.settings.get("default"));
+                return;
+            }
+            
+            var newValue = field3.val() || field3.settings.get("default");
+            var newComputedValue = newValue;
+
+            // Update computed value
+            defaultTokenModel.set("machinename", newComputedValue);
+        });
+        defaultUpdate['field3'] = true;
+        field3.trigger("change", field3.val(), field3);
+
+        //
+        // Handle form submit
+        //
+        var submit = new SubmitButton({
+            id: 'submit',
+            el: $('#search_btn')
+        }, {tokens: true}).render();
+
+        submit.on("submit", function() {
+            submitTokens();
+        });
+
+        //
+        // Submit any form data
+        //
+        if (!_.isEmpty(urlTokenModel.toJSON())){
+            submitTokens();
+        }
+
+        //
+        // Signal the dashboard is done loading.
+        //
+        DashboardController.ready();
+        pageLoading = false;
+    }
+);
+</script>
+</body>
+</html>

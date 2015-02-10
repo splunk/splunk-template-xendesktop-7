@@ -1,0 +1,77 @@
+<form script="perf.js">
+  <label>Clients</label>
+  
+  <fieldset autoRun="true">
+    
+    <input type="dropdown" token="SiteName">
+      <label>Site:</label>
+      <choice value="*">All Sites</choice>
+      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
+	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
+      </populatingSearch>
+      <default>*</default>
+    </input>
+    
+    <input type="time">
+      <label>Time Range:</label>
+      <default>Last 60 minutes</default>
+    </input>
+    
+  </fieldset>
+  
+  <row>
+    <html>
+      <p>
+	This dashboard displays the most frequently used ICA client versions and devices.  The graphs below display the count by user name.
+      </p>
+    </html>
+  </row>
+  
+  <row>
+    
+    <chart>
+      <title>Top Client Versions</title>
+      <searchString>
+	`xd_index` sourcetype="xendesktop:*:session" UserName!="" StartTime!="" |
+	fillnull value="" ClientVersion |
+	stats count by UserName ClientVersion |
+	eval ClientVersion = if(ClientVersion == "", "Unknown", ClientVersion) |
+	chart count by ClientVersion
+      </searchString>
+      <option name="charting.axisTitleX.text">Client Version</option>
+      <option name="charting.axisTitleX.visibility">visible</option>
+      <option name="charting.axisTitleY.text">Count by Users</option>
+      <option name="charting.axisTitleY.visibility">visible</option>
+      <option name="charting.axisX.scale">linear</option>
+      <option name="charting.axisY.scale">linear</option>
+      <option name="charting.chart">bar</option>
+      <option name="charting.chart.nullValueMode">gaps</option>
+      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+      <option name="charting.chart.stackMode">default</option>
+      <option name="charting.chart.style">shiny</option>
+      <option name="charting.drilldown">none</option>
+      <option name="charting.layout.splitSeries">0</option>
+      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+      <option name="charting.legend.placement">none</option>
+    </chart>
+  </row>
+  
+  <row>
+    <table>
+      <title>Client Details by User and Logon</title>
+      <searchString>
+	`xd_index` sourcetype="xendesktop:*:session" UserName!="" StartTime!="" |
+	fillnull value="" ClientVersion |
+	stats count BY StartTime MachineName UserName ClientVersion ClientAddress ApplicationsInUse |
+	table StartTime MachineName UserName ClientVersion ClientAddress ApplicationsInUse |
+	rename StartTime AS "Logon Time" MachineName AS "Machine Name" UserName AS "User" ClientVersion AS "Client Version" ClientAddress AS "Client Address" ApplicationsInUse AS "Applications"
+      </searchString>
+      
+      <option name="wrap">true</option>
+      <option name="rowNumbers">false</option>
+      <option name="dataOverlayMode">none</option>
+      <option name="drilldown">none</option>
+    </table>
+  </row>
+  
+</form>

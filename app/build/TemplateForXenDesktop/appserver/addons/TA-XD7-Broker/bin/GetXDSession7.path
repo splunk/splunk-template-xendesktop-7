@@ -1,1 +1,0 @@
-$SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe -command  " &'$SPLUNK_HOME\etc\apps\TA-XD7-Broker\bin\powershell\GetXDSession7.ps1'"
