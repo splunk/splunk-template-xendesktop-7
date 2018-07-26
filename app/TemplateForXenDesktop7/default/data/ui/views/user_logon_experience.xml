@@ -15,11 +15,13 @@
   
   <row>
     <single>
-      <searchString>
-        `xd_winevents_index` sourcetype="wineventlog:microsoft-windows-grouppolicy/operational" ActivityId="$ActivityId$" |
-        transaction ActivityId |
-        fields duration
-      </searchString>
+      <search>
+        <query>
+          `xd_winevents_index` sourcetype="wineventlog:microsoft-windows-grouppolicy/operational" ActivityId="$ActivityId$" |
+          transaction ActivityId |
+          fields duration
+        </query>
+      </search>
       <title>Logon Duration - Username: $username$</title>
       <option name="field">duration</option>
       <option name="underLabel">Seconds</option>
@@ -28,11 +30,13 @@
   
   <row>
     <chart>
-      <searchString>
-        `xd_winevents_index` sourcetype="wineventlog:microsoft-windows-grouppolicy/operational" ActivityId="$ActivityId$" |
-        reverse |
-        search *MilliSeconds* | chart max(*MilliSeconds*) AS *MilliSeconds* BY Message 
-      </searchString>
+      <search>
+        <query>
+          `xd_winevents_index` sourcetype="wineventlog:microsoft-windows-grouppolicy/operational" ActivityId="$ActivityId$" |
+          reverse |
+          search *MilliSeconds* | chart max(*MilliSeconds*) AS *MilliSeconds* BY Message
+        </query>
+      </search>
       <title>Logon Break-Down in Milliseconds</title>
       <option name="charting.chart">bar</option>
       <option name="charting.legend.placement">none</option>
@@ -41,16 +45,17 @@
   
   <row>
     <table id="userSessions">
-      <searchString>
-        `xd_winevents_index` sourcetype="wineventlog:microsoft-windows-grouppolicy/operational" ActivityId="$ActivityId$" |
-        reverse |
-        table EventID OpcodeDisplayName Message CSEElaspedTimeInMilliSeconds CSEExtensionName DescriptionString OperationElaspedTimeInMilliSeconds PolicyElaspedTimeInSeconds |
-        rename EventID AS "Event ID" OpcodeDisplayName AS "Operation" CSEElaspedTimeInMilliSeconds AS "CSE Elapsed Time" CSEExtensionName AS "CSE Name" DescriptionString AS "Description" OperationElaspedTimeInMilliSeconds AS "Operation Elapsed Time" PolicyElaspedTimeInSeconds AS "Policy Elasped Time"
-      </searchString>
+      <search>
+        <query>
+          `xd_winevents_index` sourcetype="wineventlog:microsoft-windows-grouppolicy/operational" ActivityId="$ActivityId$" |
+          reverse |
+          table EventID OpcodeDisplayName Message CSEElaspedTimeInMilliSeconds CSEExtensionName DescriptionString OperationElaspedTimeInMilliSeconds PolicyElaspedTimeInSeconds |
+          rename EventID AS "Event ID" OpcodeDisplayName AS "Operation" CSEElaspedTimeInMilliSeconds AS "CSE Elapsed Time" CSEExtensionName AS "CSE Name" DescriptionString AS "Description" OperationElaspedTimeInMilliSeconds AS "Operation Elapsed Time" PolicyElaspedTimeInSeconds AS "Policy Elasped Time"
+        </query>
+      </search>
       
       <title>Logon Detail</title>
       <option name="count">100</option>
-      <option name="displayRowNumbers">false</option>
     </table>
   </row>
   

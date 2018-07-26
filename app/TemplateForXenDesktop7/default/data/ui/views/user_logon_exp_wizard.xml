@@ -23,11 +23,13 @@
   
   <row>
     <table id="userSessions">
-      <searchString>
-        `xd_winevents_index` sourcetype="WinEventLog:Microsoft-Windows-GroupPolicy/Operational" UserName="$username$" Id=4001 |
-        table UserName TimeCreated host ActivityId |
-        rename UserName AS "User Name" TimeCreated AS "Logon Time" host AS "Server"
-      </searchString>
+      <search>
+        <query>
+          `xd_winevents_index` sourcetype="WinEventLog:Microsoft-Windows-GroupPolicy/Operational" UserName="$username$" Id=4001 |
+          table UserName TimeCreated host ActivityId |
+          rename UserName AS "User Name" TimeCreated AS "Logon Time" host AS "Server"
+        </query>
+      </search>
       
       <title>User Sessions</title>
       

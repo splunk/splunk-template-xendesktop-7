@@ -1,297 +1,279 @@
-<form script="host_perf_overview.js" stylesheet="host_perf_overview.css">
+<form>
   <label>Machine Performance Overview</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
-    
     <input type="time">
       <label>Time Range:</label>
       <default>Last 60 minutes</default>
     </input>
-
     <input type="text" token="machinename" id="server">
       <label>Machine:</label>
-      <seed>*</seed>
+      <default>*</default>
     </input>
-    
-    <input type="dropdown" token="memMetric" searchWhenChanged="true">
-      <label>Memory Metric:</label>
-      <choice value="Available_Bytes">Available MB</choice>
-      <choice value="Pages/sec">Pages/sec</choice>
-      <default>Available_Bytes</default>
-    </input>
-    
-    <input type="dropdown" token="diskMetric" searchWhenChanged="true">
-      <label>Disk Metric:</label>
-      <choice value="%_Free_Space">% Free Space</choice>
-      <choice value="%_Disk_Time">% Disk Time</choice>
-      <choice value="Current_Disk_Queue_Length">Current Disk Queue Length</choice>
-      <choice value="Avg._Disk_sec/Transfer">Avg. Disk sec/Transer</choice>
-      <default>Avg._Disk_sec/Transfer</default>
-    </input>
-    
   </fieldset>
-  
   <row>
-    <html>
+    <panel>
+      <html>
       <p>
 	This dashboard displays the various host performance details. By default, only the top 10 hosts are shown for each category. To change the number of hosts displayed, modify the sort command on the underlying searches. 
 	Click on a row to get further details about the displayed metrics.
       </p>
     </html>
+    </panel>
   </row>
-  
   <row>
-    <table>
+    <panel>
       <title>CPU Metrics - % Processor Time</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:Processor" instance="_Total" SiteName="$SiteName$" host="$machinename$" |
-	stats avg(%_Processor_Time) AS avg max(%_Processor_Time) AS max sparkline(avg(%_Processor_Time)) AS Trend latest(%_Processor_Time) as Current latest(_time) as "Last Updated" by host |
-	convert ctime("Last Updated") |
-	sort 10 - avg |
-	eval avg = round(avg, 2) |
-	eval max = round(max, 2) |
-	eval Current = round(Current, 2) |
-	table host avg max Current Trend "Last Updated" |
-	rename host AS Machine avg AS "Average" max AS "Max Value"
-      </searchString>
-      
-      <option name="wrap">true</option>
-      <option name="rowNumbers">false</option>
-      <option name="dataOverlayMode">none</option>
-      <option name="drilldown">row</option>
-      
-      <format type="sparkline" field="Trend">
-        <option name="lineColor">#5379af</option>
-        <option name="fillColor">#CCDDFF</option>
-        <option name="lineWidth">1</option>
-        <option name="maxSpotColor">#A2FFA2</option>
-        <option name="spotRadius">3</option>
-        <option name="height">30px</option>
-	<option name="tooltipPrefix">Average CPU: </option>
-      </format>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+      <table>
+        <search>
+          <query>
+        	`xd_perfmon_index` sourcetype="PerfmonMk:Processor" instance="_Total" SiteName="$SiteName$" host="$machinename$" |
+        	stats avg(%_Processor_Time) AS avg max(%_Processor_Time) AS max sparkline(avg(%_Processor_Time)) AS Trend latest(%_Processor_Time) as Current latest(_time) as "Last Updated" by host |
+        	convert ctime("Last Updated") |
+        	sort 10 - avg |
+        	eval avg = round(avg, 2) |
+        	eval max = round(max, 2) |
+        	eval Current = round(Current, 2) |
+        	table host avg max Current Trend "Last Updated" |
+        	rename host AS Machine avg AS "Average" max AS "Max Value"
+	      </query>
+        </search>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <format field="Trend" type="sparkline">
+          <option name="lineColor">#5379af</option>
+          <option name="fillColor">#CCDDFF</option>
+          <option name="lineWidth">1</option>
+          <option name="maxSpotColor">#A2FFA2</option>
+          <option name="spotRadius">3</option>
+          <option name="tooltipPrefix">Average CPU:</option>
+        </format>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenDesktop7/host_proc_detail?earliest=$earliest$&latest=$latest$&form.SiteName=$SiteName$&form.machinename=$row.Machine$
           ]]>
-         </link>
-     </drilldown>
-    
-    </table>
-    
-    <table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
       <title>System Metrics - Processor Queue Length</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:System" SiteName="$SiteName$" host="$machinename$" |
-	lookup winHosts host OUTPUT NumberOfCores |
-	fillnull value="1" NumberOfCores |
-	eval Processor_Queue_Length = Processor_Queue_Length / NumberOfCores |
-	stats avg(Processor_Queue_Length) AS avg max(Processor_Queue_Length) AS max sparkline(avg(Processor_Queue_Length)) AS Trend latest(Processor_Queue_Length) AS Current latest(_time) AS "Last Updated" values(NumberOfCores) AS NumberOfCores by host |
-	convert ctime("Last Updated") |
-	sort 10 - avg |
-	eval avg = round(avg, 2) |
-	eval max = round(max, 2) |
-	eval Current = round(Current, 2) |
-	table host avg max Current Trend NumberOfCores "Last Updated" |
-	rename host AS Machine NumberOfCores AS "# Cores" avg AS "Average/Core" max AS "Max/Core"
-      </searchString>
-      
-      <option name="wrap">true</option>
-      <option name="rowNumbers">false</option>
-      <option name="dataOverlayMode">none</option>
-      <option name="drilldown">row</option>
-      
-      <format type="sparkline" field="Trend">
-        <option name="lineColor">#5379af</option>
-        <option name="fillColor">#CCDDFF</option>
-        <option name="lineWidth">1</option>
-        <option name="maxSpotColor">#A2FFA2</option>
-        <option name="spotRadius">3</option>
-        <option name="height">30px</option>
-	<option name="tooltipPrefix">Average Value: </option>
-      </format>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+      <table>
+        <search>
+          <query>
+        	`xd_perfmon_index` sourcetype="PerfmonMk:System" SiteName="$SiteName$" host="$machinename$" |
+        	lookup winHosts host OUTPUT NumberOfCores |
+        	fillnull value="1" NumberOfCores |
+        	eval Processor_Queue_Length = Processor_Queue_Length / NumberOfCores |
+        	stats avg(Processor_Queue_Length) AS avg max(Processor_Queue_Length) AS max sparkline(avg(Processor_Queue_Length)) AS Trend latest(Processor_Queue_Length) AS Current latest(_time) AS "Last Updated" values(NumberOfCores) AS NumberOfCores by host |
+        	convert ctime("Last Updated") |
+        	sort 10 - avg |
+        	eval avg = round(avg, 2) |
+        	eval max = round(max, 2) |
+        	eval Current = round(Current, 2) |
+        	table host avg max Current Trend NumberOfCores "Last Updated" |
+        	rename host AS Machine NumberOfCores AS "# Cores" avg AS "Average/Core" max AS "Max/Core"
+	      </query>
+        </search>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <format field="Trend" type="sparkline">
+          <option name="lineColor">#5379af</option>
+          <option name="fillColor">#CCDDFF</option>
+          <option name="lineWidth">1</option>
+          <option name="maxSpotColor">#A2FFA2</option>
+          <option name="spotRadius">3</option>
+          <option name="tooltipPrefix">Average Value:</option>
+        </format>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenDesktop7/host_proc_detail?earliest=$earliest$&latest=$latest$&form.SiteName=$SiteName$&form.machinename=$row.Machine$
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
-    
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
   <row>
-    <table id="tblMemMetrics">
+    <panel>
       <title>Memory Metrics</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:Memory" SiteName="$SiteName$" host="$machinename$" |
-	eval Available_Bytes = Available_Bytes / 1024 |
-	stats avg($memMetric$) AS avg max($memMetric$) AS max sparkline(avg($memMetric$)) AS Trend latest($memMetric$) as Current latest(_time) as "Last Updated" by host |
-	convert ctime("Last Updated") |
-	sort 10 - avg |
-	eval avg = round(avg, 2) |
-	eval max = round(max, 2) |
-	eval Current = round(Current, 2) |
-	table host avg max Current Trend "Last Updated" |
-	rename host AS Machine avg AS "Average" max AS "Max"
-      </searchString>
-      
-      <option name="wrap">true</option>
-      <option name="rowNumbers">false</option>
-      <option name="dataOverlayMode">none</option>
-      <option name="drilldown">row</option>
-      
-      <format type="sparkline" field="Trend">
-        <option name="lineColor">#5379af</option>
-        <option name="fillColor">#CCDDFF</option>
-        <option name="lineWidth">1</option>
-        <option name="maxSpotColor">#A2FFA2</option>
-        <option name="spotRadius">3</option>
-        <option name="height">30px</option>
-	<option name="tooltipPrefix">Average Value: </option>
-      </format>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+      <input type="dropdown" token="memMetric" searchWhenChanged="true">
+        <label>Memory Metric:</label>
+        <choice value="Available_Bytes">Available MB</choice>
+        <choice value="Pages/sec">Pages/sec</choice>
+        <default>Available_Bytes</default>
+      </input>
+      <table id="tblMemMetrics">
+        <search>
+          <query>
+        	`xd_perfmon_index` sourcetype="PerfmonMk:Memory" SiteName="$SiteName$" host="$machinename$" |
+        	eval Available_Bytes = Available_Bytes / 1024 |
+        	stats avg($memMetric$) AS avg max($memMetric$) AS max sparkline(avg($memMetric$)) AS Trend latest($memMetric$) as Current latest(_time) as "Last Updated" by host |
+        	convert ctime("Last Updated") |
+        	sort 10 - avg |
+        	eval avg = round(avg, 2) |
+        	eval max = round(max, 2) |
+        	eval Current = round(Current, 2) |
+        	table host avg max Current Trend "Last Updated" |
+        	rename host AS Machine avg AS "Average" max AS "Max"
+	      </query>
+        </search>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <format field="Trend" type="sparkline">
+          <option name="lineColor">#5379af</option>
+          <option name="fillColor">#CCDDFF</option>
+          <option name="lineWidth">1</option>
+          <option name="maxSpotColor">#A2FFA2</option>
+          <option name="spotRadius">3</option>
+          <option name="tooltipPrefix">Average Value:</option>
+        </format>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenDesktop7/host_mem_detail?earliest=$earliest$&latest=$latest$&form.SiteName=$SiteName$&form.machinename=$row.Machine$
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
-    
-    <table id="tblDiskMetrics">
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
       <title>Disk Metrics</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" instance="_Total" SiteName="$SiteName$" host="$machinename$" |
-	stats avg($diskMetric$) AS avg max($diskMetric$) AS max sparkline(avg($diskMetric$)) AS Trend latest($diskMetric$) as Current latest(_time) as "Last Updated" by host |
-	convert ctime("Last Updated") |
-	sort 10 - avg |
-	eval avg = round(avg, 2) |
-	eval max = round(max, 2) |
-	eval Current = round(Current, 2) |
-	table host avg max Current Trend "Last Updated" |
-	rename host AS Machine avg AS "Average" max AS "Max"
-      </searchString>
-      
-      <option name="wrap">true</option>
-      <option name="rowNumbers">false</option>
-      <option name="dataOverlayMode">none</option>
-      <option name="drilldown">row</option>
-      
-      <format type="sparkline" field="Trend">
-        <option name="lineColor">#5379af</option>
-        <option name="fillColor">#CCDDFF</option>
-        <option name="lineWidth">1</option>
-        <option name="maxSpotColor">#A2FFA2</option>
-        <option name="spotRadius">3</option>
-        <option name="height">30px</option>
-	<option name="tooltipPrefix">Average Value: </option>
-      </format>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+      <input type="dropdown" token="diskMetric" searchWhenChanged="true">
+        <label>Disk Metric:</label>
+        <choice value="%_Free_Space">% Free Space</choice>
+        <choice value="%_Disk_Time">% Disk Time</choice>
+        <choice value="Current_Disk_Queue_Length">Current Disk Queue Length</choice>
+        <choice value="Avg._Disk_sec/Transfer">Avg. Disk sec/Transer</choice>
+        <default>Avg._Disk_sec/Transfer</default>
+      </input>
+      <table id="tblDiskMetrics">
+        <search>
+          <query>
+        	`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" instance="_Total" SiteName="$SiteName$" host="$machinename$" |
+        	stats avg($diskMetric$) AS avg max($diskMetric$) AS max sparkline(avg($diskMetric$)) AS Trend latest($diskMetric$) as Current latest(_time) as "Last Updated" by host |
+        	convert ctime("Last Updated") |
+        	sort 10 - avg |
+        	eval avg = round(avg, 2) |
+        	eval max = round(max, 2) |
+        	eval Current = round(Current, 2) |
+        	table host avg max Current Trend "Last Updated" |
+        	rename host AS Machine avg AS "Average" max AS "Max"
+	      </query>
+        </search>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <format field="Trend" type="sparkline">
+          <option name="lineColor">#5379af</option>
+          <option name="fillColor">#CCDDFF</option>
+          <option name="lineWidth">1</option>
+          <option name="maxSpotColor">#A2FFA2</option>
+          <option name="spotRadius">3</option>
+          <option name="tooltipPrefix">Average Value:</option>
+        </format>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenDesktop7/host_disk_detail?earliest=$earliest$&latest=$latest$&form.SiteName=$SiteName$&form.machinename=$row.Machine$
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
-    
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
   <row>
-    <table>
+    <panel>
       <title>Page File Metrics - % Usage</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:PageFile" SiteName="$SiteName$" host="$machinename$" |
-	stats avg(%_Usage) AS avg max(%_Usage) AS max sparkline(avg(%_Usage)) AS "Trend" latest(%_Usage) as Current latest(_time) as "Last Updated" by host |
-	convert ctime("Last Updated") |
-	sort 10 - avg |
-	eval avg = round(avg, 2) |
-	eval max = round(max, 2) |
-	eval Current = round(Current, 2) |
-	table host avg max Current Trend "Last Updated" |
-	rename host AS Machine avg AS "Average" max AS "Max"
-      </searchString>
-      
-      <option name="wrap">true</option>
-      <option name="rowNumbers">false</option>
-      <option name="dataOverlayMode">none</option>
-      <option name="drilldown">row</option>
-      
-      <format type="sparkline" field="Trend">
-        <option name="lineColor">#5379af</option>
-        <option name="fillColor">#CCDDFF</option>
-        <option name="lineWidth">1</option>
-        <option name="maxSpotColor">#A2FFA2</option>
-        <option name="spotRadius">3</option>
-        <option name="height">30px</option>
-	<option name="tooltipPrefix">Average % Usage: </option>
-      </format>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+      <table>
+        <search>
+          <query>
+        	`xd_perfmon_index` sourcetype="PerfmonMk:PageFile" SiteName="$SiteName$" host="$machinename$" |
+        	stats avg(%_Usage) AS avg max(%_Usage) AS max sparkline(avg(%_Usage)) AS "Trend" latest(%_Usage) as Current latest(_time) as "Last Updated" by host |
+        	convert ctime("Last Updated") |
+        	sort 10 - avg |
+        	eval avg = round(avg, 2) |
+        	eval max = round(max, 2) |
+        	eval Current = round(Current, 2) |
+        	table host avg max Current Trend "Last Updated" |
+        	rename host AS Machine avg AS "Average" max AS "Max"
+	      </query>
+        </search>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <format field="Trend" type="sparkline">
+          <option name="lineColor">#5379af</option>
+          <option name="fillColor">#CCDDFF</option>
+          <option name="lineWidth">1</option>
+          <option name="maxSpotColor">#A2FFA2</option>
+          <option name="spotRadius">3</option>
+          <option name="tooltipPrefix">Average % Usage:</option>
+        </format>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenDesktop7/search?q=search `xd_perfmon_index` sourcetype="PerfmonMk:PageFile" SiteName="$SiteName$" host="$machinename$" | timechart avg(%25_Usage) AS "Avg. %25 Pagefile Usage" by host&earliest=$earliest$&latest=$latest$&display.general.type=visualizations&display.visualizations.charting.chart=area&display.visualizations.charting.axisTitleX.visibility=collapsed&display.visualizations.charting.legend.placement=bottom
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
-    
-    <table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
       <title>Network Metrics - Bytes Total/Sec</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:NetworkInterface" SiteName="$SiteName$" host="$machinename$" |
-	stats avg(Bytes_Total/sec) AS avg max(Bytes_Total/sec) AS max sparkline(avg(Bytes_Total/sec)) AS Trend latest(Bytes_Total/sec) as Current latest(_time) as "Last Updated" by host |
-	convert ctime("Last Updated") |
-	sort 10 - avg |
-	eval avg = round(avg, 2) |
-	eval max = round(max, 2) |
-	eval Current = round(Current, 2) |
-	table host avg max Current Trend "Last Updated" |
-	rename host AS Machine avg AS "Average" max AS "Max"
-      </searchString>
-      
-      <option name="wrap">true</option>
-      <option name="rowNumbers">false</option>
-      <option name="dataOverlayMode">none</option>
-      <option name="drilldown">row</option>
-      
-      <format type="sparkline" field="Trend">
-        <option name="lineColor">#5379af</option>
-        <option name="fillColor">#CCDDFF</option>
-        <option name="lineWidth">1</option>
-        <option name="maxSpotColor">#A2FFA2</option>
-        <option name="spotRadius">3</option>
-        <option name="height">30px</option>
-	<option name="tooltipPrefix">Average Value: </option>
-      </format>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+      <table>
+        <search>
+          <query>
+        	`xd_perfmon_index` sourcetype="PerfmonMk:NetworkInterface" SiteName="$SiteName$" host="$machinename$" |
+        	stats avg(Bytes_Total/sec) AS avg max(Bytes_Total/sec) AS max sparkline(avg(Bytes_Total/sec)) AS Trend latest(Bytes_Total/sec) as Current latest(_time) as "Last Updated" by host |
+        	convert ctime("Last Updated") |
+        	sort 10 - avg |
+        	eval avg = round(avg, 2) |
+        	eval max = round(max, 2) |
+        	eval Current = round(Current, 2) |
+        	table host avg max Current Trend "Last Updated" |
+        	rename host AS Machine avg AS "Average" max AS "Max"
+	      </query>
+        </search>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+        <format field="Trend" type="sparkline">
+          <option name="lineColor">#5379af</option>
+          <option name="fillColor">#CCDDFF</option>
+          <option name="lineWidth">1</option>
+          <option name="maxSpotColor">#A2FFA2</option>
+          <option name="spotRadius">3</option>
+          <option name="tooltipPrefix">Average Value:</option>
+        </format>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenDesktop7/search?q=search `xd_perfmon_index` sourcetype="PerfmonMk:NetworkInterface" SiteName="$SiteName$" host="$machinename$" | timechart avg(Bytes_Total/sec) AS "Avg. Bytes/sec" by host&earliest=$earliest$&latest=$latest$&display.general.type=visualizations&display.visualizations.charting.legend.placement=bottom&display.visualizations.charting.axisTitleX.visibility=collapsed&display.visualizations.charting.chart.nullValueMode=zero
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
 </form>

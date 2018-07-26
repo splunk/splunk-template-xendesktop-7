@@ -1,50 +1,46 @@
 <form stylesheet="environment_overview.css" script="environment_overview.js">
   <label>Environment Overview</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
-    
     <input type="time">
       <label>Time Range:</label>
       <default>Last 24 hours</default>
     </input>
-    
   </fieldset>
-  
   <row>
-  
-    <table>
-      <title>Site Details</title>
-      <searchString>
-	| inputlookup lookup_sites.csv |
+    <panel>
+      <table>
+        <title>Site Details</title>
+        <search>
+          <query>| inputlookup lookup_sites.csv |
 	rename _time AS "Last Updated" |
 	convert ctime("Last Updated") |
 	table Name Machines Applications Controllers "Last Updated" |
-	rename Name AS "Site Name"
-      </searchString>
-      
-      <drilldown>
-	<link>
-	  <![CDATA[
+	rename Name AS "Site Name"</query>
+        </search>
+        <drilldown>
+          <link>
+            <![CDATA[
 	    /app/TemplateForXenDesktop7/site_overview?earliest=$earliest$&latest=$latest$&form.SiteName=$row.Site Name$
 	  ]]>
-	</link>
-      </drilldown>
-      
-    </table>
-    
-    <table id="tblHealth">
-      <title>Health</title>
-      <searchString>
-	`xd_index` sourcetype="WMI:Services" SiteName="$SiteName$" `Services-Inf` |
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table id="tblHealth">
+        <title>Health</title>
+        <search>
+          <query>`xd_index` sourcetype="WMI:Services" SiteName="$SiteName$" `Services-Inf` |
 	stats latest(State) AS State by DisplayName host |
 	stats count BY State |
 	where State!="Running" |
@@ -52,91 +48,93 @@
 	appendcols [search `xd_index` sourcetype="WMI:Services" SiteName="*" `Services-Inf` | stats count AS serviceCount] |
 	eval Status = if(serviceCount == 0, "No Data", if(count == 0, "All Services Running", count." Service(s) Critical")) |
 	fillnull State value="*" |
-	eval range=if(serviceCount == 0, "elevated", if(count > 0, "severe", "low")) |
-	table Status State range
-      </searchString>
-      
-      <drilldown>
-	<link>
-	  <![CDATA[
+	eval range=if(serviceCount == 0, "elevated", if(count &gt; 0, "severe", "low")) |
+	table Status State range</query>
+        </search>
+        <drilldown>
+          <link>
+            <![CDATA[
 	    /app/TemplateForXenDesktop7/services_group?earliest=$earliest$&latest=$latest$&form.SiteName=$SiteName$&form.state=$row.State$
 	  ]]>
-	</link>
-      </drilldown>
-      
-    </table>
-    
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
   <row>
-    <chart id="chartApps">
-      <title>Popular Applications</title>
-      <searchString>
-	`xd_index` sourcetype="xendesktop:*:session" ApplicationsInUse!="" SiteName="$SiteName$" |
+    <panel>
+      <chart id="chartApps">
+        <title>Popular Applications</title>
+        <search>
+          <query>`xd_index` sourcetype="xendesktop:*:session" ApplicationsInUse!="" SiteName="$SiteName$" | stats count by EstablishmentTime ApplicationsInUse |
 	makemv delim=";" ApplicationsInUse |
 	top limit=10 ApplicationsInUse |
-	rename ApplicationsInUse AS "Application"
-      </searchString>
-      <option name="charting.axisTitleX.visibility">visible</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">pie</option>
-      <option name="charting.chart.nullValueMode">gaps</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">right</option>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+	rename ApplicationsInUse AS "Application"</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenDesktop7/user_activity?earliest=$earliest$&latest=$latest$&form.AppName=$row.Application$
           ]]>
-         </link>
-     </drilldown>
-      
-    </chart>
-    
-    <chart>
-      <title>Users by Site</title>
-      <searchString>
-	`xd_index` sourcetype=xendesktop:*:session SiteName="$SiteName$" |
-	timechart dc(UserName) AS "User Count" by SiteName
-      </searchString>
-      <option name="charting.axisTitleX.visibility">collapsed</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">line</option>
-      <option name="charting.chart.nullValueMode">gaps</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">right</option>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
-            /app/TemplateForXenDesktop7/user_activity?earliest=$earliest$&latest=$latest$&form.SiteName=$row.SiteName$
+          </link>
+        </drilldown>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Users by Site</title>
+        <search>
+          <query>`xd_index` sourcetype=xendesktop:*:session SiteName="$SiteName$" |
+	timechart dc(UserName) AS "User Count" by SiteName</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link>
+            <![CDATA[
+            /app/TemplateForXenDesktop7/user_activity?earliest=$earliest$&latest=$latest$&form.SiteName=$click.name2$
           ]]>
-         </link>
-     </drilldown>
-      
-    </chart>
+          </link>
+        </drilldown>
+      </chart>
+    </panel>
   </row>
-  
   <row>
-    <table id="tblAlerts">
-      <title>Alerts</title>
-      <searchString>
-        `xd_index`_alerts SiteName="$SiteName$" |
+    <panel>
+      <table id="tblAlerts">
+        <title>Alerts</title>
+        <search>
+          <query>`xd_index`_alerts SiteName="$SiteName$" |
 	stats latest(_time) AS latest_alert_time latest(Value) AS Value latest(Severity) AS Severity BY SiteName orig_host AlertName Details |
 	convert ctime(latest_alert_time) AS latest_alert_time |
 	eval View = case(
@@ -148,18 +146,20 @@
 	  )  |
 	sort latest_alert_time |
 	table latest_alert_time SiteName AlertName Severity orig_host Details Value View |
-	rename latest_alert_time AS "Time" AlertName AS Alert orig_host AS Host SiteName AS Site
-      </searchString>
-      
-      <drilldown>
-	<link>
-	  <![CDATA[
+	rename latest_alert_time AS "Time" AlertName AS Alert orig_host AS Host SiteName AS Site</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link>
+            <![CDATA[
 	    /app/TemplateForXenDesktop7/$row.View$?earliest=$earliest$&latest=$latest$&form.machinename=$row.Host$&form.SiteName=$row.Site$
 	  ]]>
-	</link>
-      </drilldown>
-      
-    </table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
 </form>

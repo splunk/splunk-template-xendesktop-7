@@ -6,10 +6,12 @@
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
 
     <input type="time">
@@ -19,24 +21,26 @@
     
     <input type="text" token="machinename">
       <label>Machine:</label>
-      <seed>*</seed>
+      <default>*</default>
     </input>
     
     <input type="text" token="appName">
       <label>Application Name:</label>
-      <seed>*</seed>
+      <default>*</default>
     </input>
 
   </fieldset>
   
   <row>
     <table id="tblSoftware">
-      <searchString>
-	`xd_index` sourcetype="xendesktop:*:installedsoftware" SiteName="$SiteName$" host="$machinename$" Name="$appName$" |
-	stats values(host) AS Hosts by Name Version Vendor |
-	sort Name |
-	rename Name AS "Application Name"
-      </searchString>
+      <search>
+        <query>
+        	`xd_index` sourcetype="xendesktop:*:installedsoftware" SiteName="$SiteName$" host="$machinename$" Name="$appName$" |
+        	stats values(host) AS Hosts by Name Version Vendor |
+        	sort Name |
+        	rename Name AS "Application Name"
+	      </query>
+      </search>
       
       <option name="count">100</option>
     </table>

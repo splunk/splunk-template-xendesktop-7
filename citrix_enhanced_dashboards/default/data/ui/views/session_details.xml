@@ -1,0 +1,161 @@
+<form>
+  <search id="basesessioninfo">
+    <query>sourcetype=xendesktop:7:session session_guid="$sess_key_tok$" | fields - date* | stats values(*) as * </query>
+    <earliest>$time_tok.earliest$</earliest>
+    <latest>$time_tok.latest$</latest>
+  </search>
+  <label>Session Details</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>Time Window</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="text" token="sess_key_tok">
+      <label>Session Key</label>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <table>
+        <title>General Session Information</title>
+        <search base="basesessioninfo">
+          <query>| fields UserFullName, BrokeringUserName, SessionState, SessionType | transpose | rename column as "Subject", "row 1" as "Detail"</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>App Launch Information</title>
+        <search base="basesessioninfo">
+          <query>|   fields SiteName, CatalogName,DesktopGroupName,DesktopKind,LaunchedViaPublishedName,ApplicationsInUse,MachineName,BrokeringDuration,EstablishmentDuration,IdleDuration | eval BrokeringDuration = mvindex(mvfilter(isnotnull(BrokeringDuration) AND BrokeringDuration!=""),0) | eval BrokeringDuration = round(BrokeringDuration/1000,3)| eval EstablishmentDuration = mvindex(mvfilter(isnotnull(EstablishmentDuration)),0) | eval EstablishmentDuration = round(EstablishmentDuration/1000,3)| eval IdleDuration = mvindex(mvfilter(isnotnull(IdleDuration)),0) | eval IdleDuration = round(IdleDuration/1000,3) | eval ApplicationsInUse= mvdedup(split(mvjoin(ApplicationsInUse, ";"),";")) | transpose | rename column as "Subject", "row 1" as "Detail"</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Client Information</title>
+        <search base="basesessioninfo">
+          <query>| fields AgentVersion,ClientAddress,ClientName,ClientPlatform,ClientVersion,Protocol,ReceiverName,SmartAccessTags,ZoneName | transpose| rename column as "Subject", "row 1" as "Detail"</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Host Session Performance</title>
+      <input type="dropdown" token="measure_tok_ica">
+        <label>Measurement</label>
+        <choice value="avg">Average</choice>
+        <choice value="max">Maximum</choice>
+        <choice value="min">Minimum</choice>
+        <choice value="stdev">Standard Deviation</choice>
+        <default>avg</default>
+        <initialValue>avg</initialValue>
+      </input>
+      <input type="multiselect" token="metrics_tok_ica" searchWhenChanged="true">
+        <label>Performance Metric</label>
+        <valuePrefix>$measure_tok_ica$(</valuePrefix>
+        <valueSuffix>)</valueSuffix>
+        <delimiter>,</delimiter>
+        <fieldForLabel>FieldName</fieldForLabel>
+        <fieldForValue>FieldName</fieldForValue>
+        <search>
+          <query>sourcetype="PerfmonMk:ICASession" [search sourcetype=xendesktop:7:session session_guid="$sess_key_tok$" | stats values(UserName) as UserName by MachineName | rename MachineName as host |   fields host, UserName] | fields Input*, Output*, Latency* | stats values(*) as * | transpose | rename column as FieldName | fields - "row 1"</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+      </input>
+      <chart>
+        <search>
+          <query>sourcetype="PerfmonMk:ICASession" [search sourcetype=xendesktop:7:session session_guid="$sess_key_tok$" | rename MachineName as host |  rename UserName as username | fields host, UserName] | timechart cont=f $metrics_tok_ica$</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">0</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Netscaler NetFlow Performance</title>
+      <input type="dropdown" token="measure_tok_ns">
+        <label>Measurement</label>
+        <choice value="avg">Average</choice>
+        <choice value="max">Maximum</choice>
+        <choice value="min">Minimum</choice>
+        <choice value="stdev">Standard Deviation</choice>
+        <default>avg</default>
+        <initialValue>avg</initialValue>
+      </input>
+      <input type="multiselect" token="metrics_tok_ns" searchWhenChanged="true">
+        <label>Performance Metric</label>
+        <valuePrefix>$measure_tok_ns$(</valuePrefix>
+        <valueSuffix>)</valueSuffix>
+        <delimiter>,</delimiter>
+        <fieldForLabel>FieldName</fieldForLabel>
+        <fieldForValue>FieldName</fieldForValue>
+        <search>
+          <query>sourcetype="citrix:netscaler:*" session_guid="$sess_key_tok$" | fields netscaler* | stats values(*) as * | transpose | fields - "row 1" | rename column as FieldName | fields FieldName</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+      </input>
+      <chart>
+        <search>
+          <query>sourcetype="citrix:netscaler:*" session_guid="$sess_key_tok$" | timechart cont=f $metrics_tok_ns$</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">0</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="parallel_coordinates_app.parallel_coordinates">
+        <title>Connection Flow</title>
+        <search>
+          <query>sourcetype="citrix:netscaler:*" OR sourcetype="xendesktop:7:session"  session_guid=$sess_key_tok$ |  stats values(client_ip) as ExternalIP, values(ConnectedViaIP) as NetscalerIP, values(LaunchedViaIP) as StoreFrontIP, values(LaunchedViaPublishedName) as AppName ,values(IPAddress) as VdaIP by session_guid | fields - session_guid | eval NetscalerIP = mvjoin(NetscalerIP,"") | iplocation ExternalIP | eval External = Region | eval External = if(isnull(External), "More history needed", External) | table External, NetscalerIP, StoreFrontIP, AppName, VdaIP</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+    <panel>
+      <viz type="timeline_app.timeline">
+        <title>Session State Timeline</title>
+        <search>
+          <query>sourcetype=xendesktop:7:session session_guid="$sess_key_tok$" | reverse | streamstats current=f window=1 latest(SessionState) as PriorState | eval StateChange = if(SessionState != PriorState OR isnull(PriorState), SessionState, "") | where StateChange != "" | delta _time p=1 | rename delta(_time) as dt | table _time, StateChange, dt | reverse | streamstats current=f window=1 latest(dt) as ldt | reverse| fields - dt | rename ldt as duration | eval duration = duration * 1000 | eval duration = if(isnull(duration), (now() - _time)*1000, duration)</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </viz>
+    </panel>
+  </row>
+</form>

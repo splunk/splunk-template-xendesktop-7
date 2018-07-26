@@ -1,99 +1,108 @@
 <form stylesheet="alerts_overview.css">
   <label>Alerts</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
-    
     <input type="time">
       <label>Time Range:</label>
       <default>Last 24 hours</default>
     </input>
-    
     <input type="text" token="machinename" id="server">
       <label>Machine:</label>
-      <seed>*</seed>
+      <default>*</default>
     </input>
-    
   </fieldset>
-  
   <row>
-    <chart>
-      <title>Top Alerts</title>
-      <searchString>
-	`xd_alert_index` SiteName="$SiteName$" orig_host="$machinename$" |
-	top limit=20 AlertName
-      </searchString>
-      <option name="charting.axisTitleX.visibility">visible</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">pie</option>
-      <option name="charting.chart.nullValueMode">gaps</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">right</option>
-    </chart>
-    
-    <chart>
-      <title>Top Affected Machines</title>
-      <searchString>
-	`xd_alert_index` SiteName="$SiteName$" orig_host="$machinename$" |
-	top limit=20 orig_host
-      </searchString>
-      <option name="charting.axisTitleX.visibility">visible</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">pie</option>
-      <option name="charting.chart.nullValueMode">gaps</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">right</option>
-    </chart>
-  
-    <chart>
-      <title>Severity</title>
-      <searchString>
-	`xd_alert_index` SiteName="$SiteName$" orig_host="$machinename$" |
-	top limit=20 Severity
-      </searchString>
-      <option name="charting.axisTitleX.visibility">visible</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">pie</option>
-      <option name="charting.chart.nullValueMode">gaps</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">right</option>
-    </chart>
+    <panel>
+      <chart>
+        <title>Top Alerts</title>
+        <search>
+          <query>`xd_alert_index` SiteName="$SiteName$" orig_host="$machinename$" |
+	top limit=20 AlertName</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Top Affected Machines</title>
+        <search>
+          <query>`xd_alert_index` SiteName="$SiteName$" orig_host="$machinename$" |
+	top limit=20 orig_host</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Severity</title>
+        <search>
+          <query>`xd_alert_index` SiteName="$SiteName$" orig_host="$machinename$" |
+	top limit=20 Severity</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
   </row>
-  
   <row>
-    <table id="tblAlerts">
-      <title>Alerts Details</title>
-      <searchString>
-        `xd_index`_alerts SiteName="$SiteName$" |
+    <panel>
+      <table id="tblAlerts">
+        <title>Alerts Details</title>
+        <search>
+          <query>`xd_index`_alerts SiteName="$SiteName$" |
 	stats latest(_time) AS latest_alert_time latest(Value) AS Value latest(Severity) AS Severity BY SiteName orig_host AlertName Details |
 	convert ctime(latest_alert_time) AS latest_alert_time |
 	eval View = case(
@@ -105,18 +114,20 @@
 	  )  |
 	sort latest_alert_time |
 	table latest_alert_time SiteName AlertName Severity orig_host Details Value View |
-	rename latest_alert_time AS "Time" AlertName AS Alert orig_host AS Machine SiteName AS Site
-      </searchString>
-      
-      <drilldown>
-	<link>
-	  <![CDATA[
+	rename latest_alert_time AS "Time" AlertName AS Alert orig_host AS Machine SiteName AS Site</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link>
+            <![CDATA[
 	    /app/TemplateForXenDesktop7/$row.View$?earliest=$earliest$&latest=$latest$&form.machinename=$row.Machine$&form.SiteName=$row.Site$
 	  ]]>
-	</link>
-      </drilldown>
-      
-    </table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
 </form>

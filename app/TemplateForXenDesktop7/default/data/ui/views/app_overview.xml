@@ -1,22 +1,26 @@
 <form>
   <label>Applications Overview</label>
   
-  <searchTemplate>
-    | inputlookup lookup_pubapp.csv |
-    join type=outer BrowserName SiteName [search `xd_index` SiteName="$SiteName$" sourcetype=xendesktop:*:session | makemv delim=";" ApplicationsInUse | rename ApplicationsInUse AS BrowserName | stats dc(UserName) AS "User Count" BY BrowserName SiteName] |
-    search SiteName="$SiteName$" |
-    fillnull value="0" "User Count"
-  </searchTemplate>
+  <search id="base">
+    <query>
+      | inputlookup lookup_pubapp.csv |
+      join type=outer BrowserName SiteName [search `xd_index` SiteName="$SiteName$" sourcetype=xendesktop:*:session | makemv delim=";" ApplicationsInUse | rename ApplicationsInUse AS BrowserName | stats dc(UserName) AS "User Count" BY BrowserName SiteName] |
+      search SiteName="$SiteName$" |
+      fillnull value="0" "User Count"
+    </query>
+  </search>
   
   <fieldset autoRun="true">
     
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
 
     <input type="time">
@@ -29,11 +33,13 @@
   <row>
     <chart id="chartApps">
       <title>Popular Applications</title>
-      <searchPostProcess>
-	search "User Count" > 0 |
-	top limit=10 "User Count" BY BrowserName |
-	rename BrowserName AS "Published Application"
-      </searchPostProcess>
+      <search base="base">
+        <query>
+        	search "User Count" > 0 |
+        	top limit=10 "User Count" BY BrowserName |
+        	rename BrowserName AS "Published Application"
+	      </query>
+      </search>
       <option name="charting.axisTitleX.visibility">visible</option>
       <option name="charting.axisTitleY.visibility">visible</option>
       <option name="charting.axisX.scale">linear</option>
@@ -61,11 +67,13 @@
   
   <row>
     <table>
-      <searchPostProcess>
-	sort - "User Count" |
-	table SiteName PublishedName ApplicationType Status "User Count" BrowserName |
-	rename SiteName AS Site PublishedName AS "Application" ApplicationType AS "Application Type"
-      </searchPostProcess>
+      <search base="base">
+        <query>
+        	sort - "User Count" |
+        	table SiteName PublishedName ApplicationType Status "User Count" BrowserName |
+        	rename SiteName AS Site PublishedName AS "Application" ApplicationType AS "Application Type"
+	      </query>
+      </search>
       
       <drilldown>
         <link>

@@ -1,0 +1,139 @@
+<form>
+  <search id="session_list">
+    <query>sourcetype=citrix:netscaler:* OR sourcetype=xendesktop:7:session 
+| stats latest(*) as *, first(StartTime) as first_start, avg(clientside_rtt) as AvgClientRTT, latest(_time) as most_recent_event by session_guid  | eval AvgClientRTT = round(AvgClientRTT,0) . " ms"
+| fields - date*, syslog_message*, StartTime 
+| rename first_start as StartTime 
+| iplocation client_ip 
+| eval SessionLife = round((now() - strptime(StartTime, "%m/%d/%Y %H:%M:%S %Z"))/60,0) . " min" | eval LastEvent =  round((now() - most_recent_event)/60,0) | eval SessionState = if(LastEvent &gt; 1, "Closed", SessionState) | eval LastEvent = LastEvent . " min"
+| table UserFullName, SiteName, ZoneName, SessionType, LaunchedViaPublishedName, StartTime, SessionLife, SessionState, LastEvent, AvgClientRTT, MachineName, Country, Region, session_guid</query>
+    <earliest>-24h</earliest>
+    <latest>now</latest>
+    <sampleRatio>10</sampleRatio>
+  </search>
+  <label>XenDesktop Site Overview</label>
+  <fieldset submitButton="true">
+    <input type="time" token="time_tok">
+      <label>Time Picker</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <viz type="parallel_coordinates_app.parallel_coordinates">
+        <title>Global Session Flow</title>
+        <search>
+          <query>sourcetype="citrix:netscaler:*" OR sourcetype="xendesktop:7:session" 
+| stats values(client_ip) as ExternalIP, values(ConnectedViaIP) as NetscalerIP, values(LaunchedViaIP) as StoreFrontIP, values(LaunchedViaPublishedName) as AppName ,values(IPAddress) as VdaIP by session_guid 
+| eval NetscalerIP = mvjoin(NetscalerIP,"") 
+| mvexpand ExternalIP | where ExternalIP  != "0.0.0.0" | iplocation ExternalIP | fillnull value="Missing"
+| eval External = Region 
+| table External, NetscalerIP, StoreFrontIP, AppName, VdaIP</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+    <panel>
+      <map>
+        <search>
+          <query>sourcetype="citrix:netscaler:*" | stats values(client_ip) as client_ip by session_guid | mvexpand client_ip | where client_ip != "0.0.0.0" | iplocation client_ip | geostats count</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="mapping.map.center">(27.68,11.25)</option>
+        <option name="mapping.map.scrollZoom">0</option>
+        <option name="mapping.map.zoom">2</option>
+        <option name="mapping.type">marker</option>
+      </map>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Session State Counts Last 24 hours</title>
+        <search>
+          <query>sourcetype=xendesktop:7:session |  stats latest(SessionState) as ss, latest(_time) as most_recent_event by session_guid | eval LastEvent =  round((now() - most_recent_event)/60,0) | eval ss = if(LastEvent &gt; 1, "Closed", ss) | stats count by ss</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">all</option>
+        <option name="height">200</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">1</option>
+        <drilldown>
+          <set token="session_state_tok">$trellis.split.ss$</set>
+        </drilldown>
+      </single>
+    </panel>
+    <panel depends="$session_state_tok$">
+      <input type="text" token="user_filter_tok" searchWhenChanged="true">
+        <label>Filter</label>
+        <default>*</default>
+        <initialValue>*</initialValue>
+      </input>      
+      <table>
+        <title>Session List ($session_state_tok$)</title>
+        <search base="session_list">
+          <query>| where SessionState="$session_state_tok$" AND MATCH(UserFullName, "(?i)$user_filter_tok$")</query>
+        </search>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link target="_self">/app/remote_home/session_details?form.sess_key_tok=$row.session_guid$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Machine Catalogs</title>
+        <search>
+          <query>sourcetype="xendesktop:7:catalog" | stats latest(Name) as Name,values(SessionSupport) as MachineType, latest(UnassignedCount) as NumberOfMachines, latest(UsedCount) as AllocatedMachines, values(AllocationType) as AllocationType, ,values(ProvisioningType) as Provisioning, values(ZoneName) as Zones by UUID</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <drilldown>
+          <link target="_blank">/app/remote_home/machine_catalog_overview?form.mc_tok=$row.UUID$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Delivery Groups</title>
+        <search>
+          <query>sourcetype="xendesktop:7:desktopgroup" 
+| stats values("Name") as Name, values("DeliveryType") as Type, values("SessionSupport") as SessionSupport, values(Enabled) as Enabled, values(InMaintenanceMode) as Maintenance, values("TotalDesktops") as Desktops, latest(Sessions) as Sessions, latest("DesktopsDisconnected") as Disconnected, latest(DesktopsUnregistered) as Unregistered by UUID</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <drilldown>
+          <link target="_blank">/app/remote_home/delivery_group_overview?desktop_uuid_tok=$row.UUID$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Applications</title>
+        <search>
+          <query>sourcetype="xendesktop:7:application" | stats values(SiteName) as Site, values(Name) as Name, values(PublishedName) as PublishedName, values(ApplicationType) as Type, latest(Enabled) as Enabled, latest(Visible) as Visible by UUID</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

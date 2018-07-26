@@ -1,205 +1,240 @@
 <form script="host_disk_detail.js" stylesheet="host_disk_detail.css">
   <label>Machine Disk Detail</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
-    
     <input type="time">
       <label>Time Range:</label>
       <default>Last 60 minutes</default>
     </input>
-
     <input type="dropdown" token="machinename">
       <label>Machine:</label>
-      <populatingSearch fieldForValue="MachineName" fieldForLabel="MachineName">
-	<![CDATA[| inputlookup lookup_host_site.csv | search SiteName="$SiteName$"]]>
-      </populatingSearch>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | search SiteName="$SiteName$"</query>
+      </search>
+      <fieldForLabel>MachineName</fieldForLabel>
+      <fieldForValue>MachineName</fieldForValue>
     </input>
-    
   </fieldset>
-  
   <row>
-    <html>
+    <panel>
+      <html>
       <p>
-	This dashboard displays vital disk statistics.
-	For a description of the metric and recommended threshold values, click on the information icon.
+      	This dashboard displays vital disk statistics.
+      	For a description of the metric and recommended threshold values, click on the information icon.
       </p>
     </html>
+    </panel>
   </row>
   
-  <row grouping="2,2">
-    
-    <chart id="chartPctDiskTime">
-      <title>% Disk Time</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
-	timechart avg(%_Disk_Time) AS avg by instance
-      </searchString>
-      <option name="charting.axisTitleX.visibility">collapsed</option>
-      <option name="charting.axisTitleY.text">% Disk Time</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.maximumNumber">100</option>
-      <option name="charting.axisY.minimumNumber">0</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">line</option>
-      <option name="charting.chart.nullValueMode">connect</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">bottom</option>
-    </chart>
-    
-    <html>
-      <!-- Button trigger modal -->
-      <a href="#" id="btnPctDiskTimeDesc" class="btnModalInfo" data-toggle="modal" data-target="#pctDiskTimeDesc"><img src="/static/app/TemplateForXenDesktop7/images/info.png" /></a>
-
+  <row>
+    <panel>
+      <html>
+        <h3 class="dashboard-element-title">% Disk Time
+          <a href="#" data-toggle="modal" data-target="#pctDiskTimeDesc">
+            <img src="/static/app/TemplateForXenDesktop7/images/info.png"/>
+          </a>
+        </h3>
+      </html>
+      
+      <chart id="chartPctDiskTime">
+        <search>
+          <query>
+            `xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
+          	timechart avg(%_Disk_Time) AS avg by instance
+        	</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">% Disk Time</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+      
+      <html>
       <!-- Modal -->
       <div class="modal fade" id="pctDiskTimeDesc" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-	  <div class="modal-content">
-	    <div class="modal-header" style="padding-top: 10px; padding-bottom: 10px">
-	      <h4 class="modal-title" id="myModalLabel"><img src="/static/app/TemplateForXenDesktop7/images/info.png" style="padding-right: 10px" />% Disk Time Details</h4>
-	    </div>
-	    <div class="modal-body">
-	      <p>
-		% Disk Time is the percentage of elapsed time that the selected disk drive was busy servicing read or write requests.
-	      </p>
-	    </div>
-	    <div class="modal-footer">
-	      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	    </div>
-	  </div>
-	</div>
+      	<div class="modal-dialog">
+      	  <div class="modal-content">
+      	    <div class="modal-header" style="padding-top: 10px; padding-bottom: 10px">
+      	      <h4 class="modal-title" id="myModalLabel">
+                        <img src="/static/app/TemplateForXenDesktop7/images/info.png" style="padding-right: 10px"/>% Disk Time Details</h4>
+      	    </div>
+      	    <div class="modal-body">
+      	      <p>
+      		% Disk Time is the percentage of elapsed time that the selected disk drive was busy servicing read or write requests.
+      	      </p>
+      	    </div>
+      	    <div class="modal-footer">
+      	      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      	    </div>
+      	  </div>
+      	</div>
       </div>
     </html>
+    </panel>
     
-    <chart id="chartDiskQueueLen">
-      <title>Disk Queue Length</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
-	timechart avg(Current_Disk_Queue_Length) AS avg by instance
-      </searchString>
-      <option name="charting.axisTitleX.visibility">collapsed</option>
-      <option name="charting.axisTitleY.text">Disk Queue Length</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.maximumNumber">10</option>
-      <option name="charting.axisY.minimumNumber">0</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">line</option>
-      <option name="charting.chart.nullValueMode">connect</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">bottom</option>
-    </chart>
-    
-    <html>
-      <!-- Button trigger modal -->
-      <a href="#" id="btnDiskQueueLenDesc" class="btnModalInfo" data-toggle="modal" data-target="#diskQueueLengthDesc"><img src="/static/app/TemplateForXenDesktop7/images/info.png" /></a>
+    <panel>
+      <html>
+        <h3 class="dashboard-element-title">Disk Queue Length
+          <a href="#" data-toggle="modal" data-target="#diskQueueLengthDesc">
+            <img src="/static/app/TemplateForXenApp/images/info.png"/>
+          </a>
+        </h3>
+      </html>
+      <chart id="chartDiskQueueLen">
+        <search>
+          <query>
+            `xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
+	          timechart avg(Current_Disk_Queue_Length) AS avg by instance
+          </query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Disk Queue Length</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.maximumNumber">10</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
 
+      <html>
       <!-- Modal -->
       <div class="modal fade" id="diskQueueLengthDesc" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-	  <div class="modal-content">
-	    <div class="modal-header" style="padding-top: 10px; padding-bottom: 10px">
-	      <h4 class="modal-title" id="myModalLabel"><img src="/static/app/TemplateForXenDesktop7/images/info.png" style="padding-right: 10px" />Disk Queue Length Details</h4>
-	    </div>
-	    <div class="modal-body">
-	      <p>
-		Current Disk Queue Length is the number of requests outstanding on the disk at the time the performance data is collected.
-		It also includes requests in service at the time of the collection. This is a instantaneous snapshot, not an average over the time interval.
-		Multi-spindle disk devices can have multiple requests that are active at one time, but other concurrent requests are awaiting service.
-		This counter might reflect a transitory high or low queue length, but if there is a sustained load on the disk drive, it is likely that
-		this will be consistently high. Requests experience delays proportional to the length of this queue minus the number of spindles on the disks.
-		For good performance, this difference should average less than two.
-	      </p>
-	    </div>
-	    <div class="modal-footer">
-	      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-	    </div>
-	  </div>
-	</div>
+      	<div class="modal-dialog">
+      	  <div class="modal-content">
+      	    <div class="modal-header" style="padding-top: 10px; padding-bottom: 10px">
+      	      <h4 class="modal-title" id="myModalLabel">
+                        <img src="/static/app/TemplateForXenDesktop7/images/info.png" style="padding-right: 10px"/>Disk Queue Length Details</h4>
+      	    </div>
+      	    <div class="modal-body">
+      	      <p>
+      		Current Disk Queue Length is the number of requests outstanding on the disk at the time the performance data is collected.
+      		It also includes requests in service at the time of the collection. This is a instantaneous snapshot, not an average over the time interval.
+      		Multi-spindle disk devices can have multiple requests that are active at one time, but other concurrent requests are awaiting service.
+      		This counter might reflect a transitory high or low queue length, but if there is a sustained load on the disk drive, it is likely that
+      		this will be consistently high. Requests experience delays proportional to the length of this queue minus the number of spindles on the disks.
+      		For good performance, this difference should average less than two.
+      	      </p>
+      	    </div>
+      	    <div class="modal-footer">
+      	      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      	    </div>
+      	  </div>
+      	</div>
       </div>
     </html>
     
+    </panel>
   </row>
   
   <row>
-    <chart>
-      <title>Avg. Disk sec/Transfer</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
-	timechart avg(Avg._Disk_sec/Transfer) AS "Avg. Disk sec/Transfer" by instance
-      </searchString>
-      <option name="charting.axisTitleX.visibility">collapsed</option>
-      <option name="charting.axisTitleY.text">Avg. Disk sec/Transfer</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">line</option>
-      <option name="charting.chart.nullValueMode">connect</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">bottom</option>
-    </chart>
-    
-    <chart>
-      <title>% Free Space</title>
-      <searchString>
-	`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
-	timechart avg(%_Free_Space) AS avg by instance
-      </searchString>
-      <option name="charting.axisTitleX.visibility">collapsed</option>
-      <option name="charting.axisTitleY.text">% Free Space</option>
-      <option name="charting.axisTitleY.visibility">visible</option>
-      <option name="charting.axisY.maximumNumber">100</option>
-      <option name="charting.axisY.minimumNumber">0</option>
-      <option name="charting.axisX.scale">linear</option>
-      <option name="charting.axisY.scale">linear</option>
-      <option name="charting.chart">line</option>
-      <option name="charting.chart.nullValueMode">connect</option>
-      <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
-      <option name="charting.chart.stackMode">default</option>
-      <option name="charting.chart.style">shiny</option>
-      <option name="charting.drilldown">all</option>
-      <option name="charting.layout.splitSeries">0</option>
-      <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-      <option name="charting.legend.placement">bottom</option>
-    </chart>
+    <panel>
+      <chart>
+        <title>Avg. Disk sec/Transfer</title>
+        <search>
+          <query>`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
+	timechart avg(Avg._Disk_sec/Transfer) AS "Avg. Disk sec/Transfer" by instance</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Avg. Disk sec/Transfer</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>% Free Space</title>
+        <search>
+          <query>`xd_perfmon_index` sourcetype="PerfmonMk:LogicalDisk" SiteName="$SiteName$" host="$machinename$" instance!="_Total" |
+	timechart avg(%_Free_Space) AS avg by instance</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">% Free Space</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.maximumNumber">100</option>
+        <option name="charting.axisY.minimumNumber">0</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
   </row>
-  
   <row>
-    <table>
-      <title>Disk I/O by Process</title>
-      <searchString>
-	`xd_perfmon_index` SiteName="$SiteName$" host="$machinename$" sourcetype="PerfmonMk:Process" instance!="_Total" |
+    <panel>
+      <table>
+        <title>Disk I/O by Process</title>
+        <search>
+          <query>`xd_perfmon_index` SiteName="$SiteName$" host="$machinename$" sourcetype="PerfmonMk:Process" instance!="_Total" |
 	rename IO_Write_Operations/sec AS write IO_Read_Operations/sec AS read |
 	eval iops = read + write |
 	stats avg(iops) AS iops avg(read) AS reads avg(write) AS writes by instance |
 	table instance iops reads writes |
-	rename iops AS "Total I/O" reads AS "Read I/O" writes AS "Write I/O"
-      </searchString>
-    </table>
+	rename iops AS "Total I/O" reads AS "Read I/O" writes AS "Write I/O"</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
   </row>
-  
 </form>

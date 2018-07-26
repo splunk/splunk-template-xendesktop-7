@@ -1,31 +1,32 @@
-<form  script="services_group.js" stylesheet="services_group.css">
+<form script="services_group.js" stylesheet="services_group.css">
   <label>Service Group Status</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
-    
     <input type="time">
       <label>Time Range:</label>
       <default>Last 24 hours</default>
     </input>
-    
     <input type="dropdown" token="ServiceGroup">
       <label>Service Group:</label>
       <choice value="*">All</choice>
-      <populatingSearch fieldForValue="ServiceGroup" fieldForLabel="ServiceGroup">
-	<![CDATA[| inputlookup lookup_service_groups.csv | stats count by ServiceGroup | sort ServiceGroup]]>
-      </populatingSearch>
+      <search>
+        <query>
+	        | inputlookup lookup_service_groups.csv | stats count by ServiceGroup | sort ServiceGroup
+	      </query>
+      </search>
+      <fieldForLabel>ServiceGroup</fieldForLabel>
+      <fieldForValue>ServiceGroup</fieldForValue>
       <default>*</default>
     </input>
-    
     <input type="dropdown" token="state">
       <label>Service State:</label>
       <choice value="*">Any</choice>
@@ -33,18 +34,16 @@
       <choice value="Stopped">Stopped</choice>
       <default>Stopped</default>
     </input>
-    
     <input type="text" token="machinename" id="server">
       <label>Machine:</label>
-      <seed>*</seed>
+      <default>*</default>
     </input>
-    
   </fieldset>
-  
   <row>
-    <html>
+    <panel>
+      <html>
       <p>
-	This dashboard displays the latest state of the individual services that make up a <a href="#" id="btnServiceGroups" class="btnModalInfo" data-toggle="modal" data-target="#serviceGroupsDesc">Service Group</a> during the selected time range.  Note that some services may belong to more than one group. <br />
+	This dashboard displays the latest state of the individual services that make up a <a href="#" id="btnServiceGroups" class="btnModalInfo" data-toggle="modal" data-target="#serviceGroupsDesc">Service Group</a> during the selected time range.  Note that some services may belong to more than one group. <br/>
 	Click on a row to see the service's change state history.  For example, when a service changed from "Running" to "Stopped".
       </p>
       
@@ -53,7 +52,8 @@
 	<div class="modal-dialog">
 	  <div class="modal-content">
 	    <div class="modal-header" style="padding-top: 10px; padding-bottom: 10px">
-	      <h4 class="modal-title" id="myModalLabel"><img src="/static/app/TemplateForXenDesktop7/images/info.png" style="padding-right: 10px" />Service Groups Details</h4>
+	      <h4 class="modal-title" id="myModalLabel">
+                  <img src="/static/app/TemplateForXenDesktop7/images/info.png" style="padding-right: 10px"/>Service Groups Details</h4>
 	    </div>
 	    <div class="modal-body">
 	      <p>
@@ -70,27 +70,29 @@
       </div>
       
     </html>
+    </panel>
   </row>
-
   <row>
-    <table id="tblServices">
-      <searchString>
-	`xd_index` sourcetype="WMI:Services" host="$machinename$" SiteName="$SiteName$" ServiceGroup="$ServiceGroup$" |
-	stats latest(State) AS State by host SiteName DisplayName  |
-	search State="$state$*" |
-	table SiteName host  DisplayName State |
-	rename SiteName AS "Site Name" host AS Machine DisplayName as Service
-      </searchString>
-      
-      <drilldown>
-	<link>
-	  <![CDATA[
+    <panel>
+      <table id="tblServices">
+        <search>
+          <query>`xd_index` sourcetype="WMI:Services" host="$machinename$" SiteName="$SiteName$" ServiceGroup="$ServiceGroup$" |
+        	stats latest(State) AS State by host SiteName DisplayName  |
+        	search State="$state$*" |
+        	table SiteName host  DisplayName State |
+        	rename SiteName AS "Site Name" host AS Machine DisplayName as Service</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link>
+            <![CDATA[
 	    /app/TemplateForXenDesktop7/service_history?earliest=$earliest$&latest=$latest$&form.machinename=$row.Machine$&form.service=$row.Service$
 	  ]]>
-	</link>
-      </drilldown>
-    </table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
-  
 </form>

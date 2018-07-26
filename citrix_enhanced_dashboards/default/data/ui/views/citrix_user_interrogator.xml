@@ -1,0 +1,276 @@
+<form>
+  <search id="netscaler_perf_stats">
+    <query>sourcetype="citrix:netscaler:*" [search sourcetype=xendesktop:7:session Protocol=HDX UserName="$user_tok$" | fields session_guid] | stats values(client_ip) as client_ip, values(netscalerIcaServerName) as netscalerIcaServerName, values(netscalerIcaClientHostName) as netscalerIcaClientHostName, values(dest_ip) as dest_ip, values(flowId) as flowId, values(src_ip) as src_ip, values(netscaleIcaClientVersion) as netscalerIcaClientVersion, values(netscalerAppNameAppId) as netscalerAppNameAppId, values(netscalerConnectionId) as netscalerConnectionId, values(netscalerIcaAppModulePath) as netscalerIcaAppModulePath, values(netscalerIcaAppProcessID) as netscalerIcaAppProcessID, values(netscalerIcaApplicationName) as netscalerIcaApplicationName, values(netscalerIcaUsername) as netscalerIcaUsername, values(sourceIPv4Address) as sourceIPv4Address, avg(netscalerIcaL7ClientLatency) as avg_netscalerIcaL7ClientLatency,max(netscalerIcaL7ClientLatency) as max_netscalerIcaL7ClientLatency, avg(netscalerIcaRTT) as avg_netscalerIcaRTT, max(netscalerIcaRTT) as max_netscalerIcaRTT, avg(netscalerIcaHostDelay) as avg_netscalerIcaHostDelay, max(netscalerIcaHostDelay) as max_netscalerIcaHostDelay, avg(netscalerIcaClientsideDelay) as avg_netscalerIcaClientsideDelay, max(netscalerIcaClientsideDelay) as max_netscalerIcaClientsideDelay, avg(netscalerIcaClientsideRTT) as avg_netscalerIcaClientsideRTT, max(netscalerIcaClientsideRTT) as max_netscalerIcaClientsideRTT, avg(netscalerIcaClientsidePacketsRetransmit) as avg_netscalerIcaClientsidePacketsRetransmit, max(netscalerIcaClientsidePacketsRetransmit) as max_netscalerIcaClientsidePacketsRetransmit, avg(netscalerIcaClientsideJitter) as avg_netscalerIcaClientsideJitter, max(netscalerIcaClientsideJitter) as max_netscalerIcaClientsideJitter, avg(netscalerIcaServersideDelay) as avg_netscalerIcaServersideDelay, max(netscalerIcaServersideDelay) as max_netscalerIcaServersideDelay, avg(netscalerIcaServersideRTT) as avg_netscalerIcaServersideRTT, max(netscalerIcaServersideRTT) as max_netscalerIcaServersideRTT, avg(netscalerIcaServersideJitter) as avg_netscalerIcaServersideJitter, max(netscalerIcaServersideJitter) as max_netscalerIcaServersideJitter by session_guid</query>
+    <earliest>$selection.earliest$</earliest>
+    <latest>$selection.latest$</latest>
+  </search>
+  <label>Citrix User Interrogator</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="time" token="time_tok">
+      <label>Timeframe</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+        <set token="selection.earliest">$time_tok.earliest$</set>
+        <set token="selection.earliest">$time_tok.latest$</set>
+      </default>
+    </input>
+    <input type="dropdown" token="user_tok">
+      <label>User</label>
+      <fieldForLabel>un</fieldForLabel>
+      <fieldForValue>un</fieldForValue>
+      <search>
+        <query>(sourcetype="citrix:netscaler:ipfix" netscalerAaaUsername=* netscalerAaaUsername!="") OR (sourcetype="xendesktop:7:session") OR (sourcetype="citrix:netscaler:syslog" citrix_netscaler_event_name=ICASTART) | rex field=syslog_message "username:[^\s]+(?&lt;syslog_username&gt;.*?):" | eval netscalerAaaUsername = if(like(netscalerAaaUsername,"%\%"), mvindex(split(netscalerAaaUsername, "\\"),1), netscalerAaaUsername)|eval controlUserName = replace(UserName, "(\\\)", "\1\\") | eval consolidatedUserName = coalesce(controlUserName, syslog_username, netscalerAaaUsername) | eval un=lower(trim(consolidatedUserName)) | dedup un | sort un | table un</query>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+    <input type="multiselect" token="session_state_tok">
+      <label>Session State</label>
+      <choice value="*">All</choice>
+      <choice value="Idle">Idle</choice>
+      <choice value="Closed">Closed</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <valuePrefix>SessionState = "</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>SessionState</fieldForLabel>
+      <fieldForValue>SessionState</fieldForValue>
+      <search>
+        <query>sourcetype="xendesktop:7:session" SessionState=* | dedup SessionState | sort SessionState | table SessionState</query>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+  <row>
+    <panel depends="user_tok">
+      <title>User Session Information</title>
+      <chart>
+        <search>
+          <query>sourcetype="xendesktop:7:session" UserName="$user_tok$"| eval newtime = split(EstablishmentTime,",") | stats earliest(newtime) as newtime by SessionKey | eval _time = strptime(newtime, "%m/%d/%Y %H:%M:%S") | timechart count</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <selection>
+          <set token="selection.earliest">$start$</set>
+          <set token="selection.latest">$end$</set>
+        </selection>
+      </chart>
+    </panel>
+    <panel>
+      <viz type="calendar_heatmap_app.calendar_heatmap">
+        <title>Last 7 days of activity</title>
+        <search>
+          <query>sourcetype="xendesktop:7:session" Protocol=HDX UserName="$user_tok$"| timechart span=1h dc(SessionKey) as "#Sessions"</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="calendar_heatmap_app.calendar_heatmap.cellPadding">3</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.cellSize">15</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.cellStyle">square</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.legendType">uniform</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.maxColor">#269489</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.minColor">#dae667</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.numOfBins">5</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.showLegend">true</option>
+        <option name="calendar_heatmap_app.calendar_heatmap.splitMonths">true</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+    <panel>
+      <title>Connection Locations</title>
+      <map>
+        <search base="netscaler_perf_stats">
+          <query>iplocation client_ip | where lat!="" | geostats count</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="mapping.choroplethLayer.colorBins">5</option>
+        <option name="mapping.choroplethLayer.colorMode">auto</option>
+        <option name="mapping.choroplethLayer.maximumColor">0xDB5800</option>
+        <option name="mapping.choroplethLayer.minimumColor">0x2F25BA</option>
+        <option name="mapping.choroplethLayer.neutralPoint">0</option>
+        <option name="mapping.choroplethLayer.shapeOpacity">0.75</option>
+        <option name="mapping.choroplethLayer.showBorder">1</option>
+        <option name="mapping.data.maxClusters">100</option>
+        <option name="mapping.legend.placement">bottomright</option>
+        <option name="mapping.map.center">(31.35,11.95)</option>
+        <option name="mapping.map.panning">1</option>
+        <option name="mapping.map.scrollZoom">1</option>
+        <option name="mapping.map.zoom">2</option>
+        <option name="mapping.markerLayer.markerMaxSize">50</option>
+        <option name="mapping.markerLayer.markerMinSize">10</option>
+        <option name="mapping.markerLayer.markerOpacity">0.8</option>
+        <option name="mapping.showTiles">1</option>
+        <option name="mapping.tileLayer.maxZoom">7</option>
+        <option name="mapping.tileLayer.minZoom">0</option>
+        <option name="mapping.tileLayer.tileOpacity">1</option>
+        <option name="mapping.type">marker</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </map>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="timeline_app.timeline">
+        <title>Session Timeline</title>
+        <search>
+          <query>sourcetype="xendesktop:7:session" Protocol=HDX UserName="$user_tok$"| eventstats earliest(_time) as TSTART, latest(_time) as TEND by SessionKey | eval TSTART_F=strftime(TSTART, "%H:%M:%S") | eval TEND_F=strftime(TEND, "%H:%M:%S") | transaction maxevents=65000 SessionKey | eval sessionMinutes=round(duration/60,2) | eval sessionMillis = duration*1000 | eval TimeSinceSessionEventSeen = now() - TEND | eval SessionState = if(TimeSinceSessionEventSeen &gt; 30, "Ended", SessionState) | rename sessionMillis as duration | rename TSTART as _time  | eval SessionName = if(SessionType=="Application", DesktopGroupName,LaunchedViaPublishedName) | search $session_state_tok$ | table  _time, SessionName, LaunchedViaPublishedName, duration</query>
+          <earliest>$selection.earliest$</earliest>
+          <latest>$selection.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="timeline_app.timeline.axisTimeFormat">MINUTES</option>
+        <option name="timeline_app.timeline.colorMode">categorical</option>
+        <option name="timeline_app.timeline.maxColor">#DA5C5C</option>
+        <option name="timeline_app.timeline.minColor">#FFE8E8</option>
+        <option name="timeline_app.timeline.numOfBins">6</option>
+        <option name="timeline_app.timeline.tooltipTimeFormat">MINUTES</option>
+        <option name="timeline_app.timeline.useColors">1</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </viz>
+      <table>
+        <title>Session Listing</title>
+        <search>
+          <query>sourcetype=xendesktop:7:session Protocol=HDX UserName="$user_tok$" | eventstats latest(_time) as latest_time, latest(IdleDuration) as idle_dur by session_guid | eval SessionState = case(now() - latest_time &gt; 30, SessionState . " (Idle/Disconnected)", idle_dur!="", "Idle", 1==1, SessionState)| eval SessionName = if(SessionType=="Application", DesktopGroupName,LaunchedViaPublishedName)| stats values(StartTime) as "Start", latest(IdleDuration) as "Idle", values(SessionState) as SessionState, values(ClientVersion) as "Client", values(ConnectedViaIP) as ConnectedVIA, values(LaunchedViaPublishedName) as Launch, values(SessionType) as Type by session_guid | search $session_state_tok$</query>
+          <earliest>$selection.earliest$</earliest>
+          <latest>$selection.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">5</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="State">
+          <colorPalette type="map">{"Active":#65A637,"Idle":#F7BC38,"Closed":#555555}</colorPalette>
+        </format>
+        <format type="color" field="SessionState">
+          <colorPalette type="map">{"Active":#65A637,"Connected":#65A637,"Idle":#F7BC38,"Closed":#555555}</colorPalette>
+        </format>
+        <drilldown>
+          <link target="_blank">/app/remote_home/session_details?form.sess_key_tok=$row.session_guid$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Client Type Use</title>
+        <search>
+          <query>sourcetype=xendesktop:7:session UserName="$user_tok$" ClientPlatform != "Unknown" | stats values(ClientPlatform) as cp by SessionKey | mvexpand cp | stats count by cp</query>
+          <earliest>$selection.earliest$</earliest>
+          <latest>$selection.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <table>
+        <title>Top 5 Processes by CPU</title>
+        <search>
+          <query>sourcetype="PerfmonMk:Process" [search sourcetype="xendesktop:7:SessionProcess"| multikv fields ProcessId UserName | where like("$user_tok$", "%" + UserName + "%") | stats count by ProcessId | rename ProcessId as ID_Process | fields ID_Process] | rename "%_Processor_Time" as ptime | rename "Working_Set_-_Private" as workingmem | stats max(ptime) as maxptime, avg(ptime) as avgp, max(workingmem) as MaxMEM, avg(workingmem) as AvgMEM, sparkline(avg(ptime)) as "AvgCPU/OT", sparkline(avg(workingmem)) as "AvgMEM/OT" by instance | eval MaxCPU = round(maxptime,2) | eval AvgCPU = round(avgp,2) | eval MaxMEM_MB = round(MaxMEM/1024/1024,0) | eval AvgMEM_MB = round(AvgMEM/1024/1024,0) | rename instance as "Process Name" | sort - MaxCPU, AvgCPU | head 5 | table "Process Name", "AvgCPU", "MaxCPU", "AvgCPU/OT", MaxMEM_MB, AvgMEM_MB, "AvgMEM/OT"</query>
+          <earliest>$selection.earliest$</earliest>
+          <latest>$selection.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Netscaler Appflow Statistics</title>
+        <search base="netscaler_perf_stats">
+          <query>| stats avg(avg_netscalerIcaRTT) as avgRTT,avg(avg_netscalerIcaL7ClientLatency) as avgL7Latency, avg(avg_netscalerIcaHostDelay) as avgHostDelay, avg(avg_netscalerIcaClientsideDelay) as avgClientDelay, avg(avg_netscalerIcaClientsideRTT) as avgClientRTT, avg(avg_netscalerIcaClientsidePacketsRetransmit) as avgClientRetrans, avg(avg_netscalerIcaClientsideJitter) as avgClientJitter, avg(avg_netscalerIcaServersideDelay) as avgServerDelay, avg(avg_netscalerIcaServersideRTT) as avgServerRTT, avg(avg_netscalerIcaServersideJitter) as avgServerJitter | transpose | rename column as "Netscaler Stat", "row 1" as Value | eval Value=round(Value,2) | rename Value as "Value (ms)"</query>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Logon Statistics</title>
+        <search>
+          <query>sourcetype="WinEventLog:Microsoft-Windows-GroupPolicy/Operational" 
+| eval LOGON_START=if(EventCode==4001, _time, null()) 
+| eval ACCT_INFO_MS=if(EventCode==5017 AND LIKE(Message, "The system call to get account%"), OperationElaspedTimeInMilliSeconds, null()) 
+| eval LDAP_BIND_MS=if(EventCode==5017 AND LIKE(Message, "The LDAP call to connect%"), OperationElaspedTimeInMilliSeconds, null()) 
+| rename DCDiscoveryTimeInMilliSeconds as DC_DISCOVERY_MS 
+| eval POLICY_DL_START = if(EventCode==4126, _time, null()) 
+| eval POLICY_DL_END = if(EventCode==5126, _time, null()) 
+| eval LOGON_END = if(EventCode==5117, _time, null()) 
+| transaction startswith=EventCode=4001 ActivityId 
+| eval POLICY_DL_SECS = POLICY_DL_END - POLICY_DL_START 
+| eval ACTUAL_LOGON_DURATION_SECS = LOGON_END - LOGON_START 
+| append 
+    [ search sourcetype=wineventlog:* tag=vda EventCode=4648 OR EventCode=1027 
+    | transaction user startswith=EventCode=4648 endswith=EventCode=1027 keepevicted=t
+    | eval SECURITY_LOGON_DURATION = duration 
+    | eval ACTUAL_SECURITY_LOGON_START=_time] 
+| append 
+    [ search sourcetype="xendesktop:7:session" | dedup UserName SessionKey | eval user = UserName]
+| search user="$user_tok$"
+| stats avg(CSEElaspedTimeInMilliSeconds) as "CSE", avg(DC_DISCOVERY_MS) as "DCDisco", avg(GPODownloadTimeElapsedInMilliseconds) as "GPODL", avg(PolicyDownloadTimeElapsedInMilliseconds) as "PolicyDL" , avg(BrokeringDuration) as BrokeringDuration, avg(EstablishmentDuration) as EstablishmentDuration
+| eval "Client Side Extensions" = round(CSE,2) 
+| eval "Domain Controller Discovery" = round(DCDisco,2) 
+| eval "Group Policy Download" = round(GPODL,2) 
+| eval "Policy Apply" = round(PolicyDL,2) 
+| eval "Brokering Duration" = round(BrokeringDuration,2)
+| eval "Establishment Duration" = round(EstablishmentDuration,2)
+| fields "Client Side Extensions", "Domain Controller Discovery", "Policy Apply", "Group Policy Download", "Brokering Duration", "Establishment Duration" | transpose | rename "column 1" as Measurement, "row 1" as "Duration (ms)"</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Access Layer Errors for $user_tok$</title>
+        <search>
+          <query>(tag=citrix_storefront_server OR sourcetype="citrix:netscaler:syslog") $user_tok$ (error OR failed OR failure) | stats count sparkline by host</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <set token="access_layer_error_host_tok">$row.host$</set>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table depends="access_layer_error_host_tok">
+        <title>Access Layer Error Details</title>
+        <search>
+          <query>(tag=citrix_storefront_server OR sourcetype="citrix:netscaler:syslog") $user_tok$ (error OR failed OR failure) host="$access_layer_error_host_tok$" | eval Error = coalesce(Message, syslog_message) | table _time, Error</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">5</option>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</form>

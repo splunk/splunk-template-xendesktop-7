@@ -1,0 +1,142 @@
+<form>
+  <label>Desktop Group Overview</label>
+  <fieldset submitButton="true">
+    <input type="time" token="time_tok" searchWhenChanged="true">
+      <label>Time Picker</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Desktops</title>
+      <input type="dropdown" token="desktop_filter_tok" searchWhenChanged="true">
+        <label>Filter</label>
+        <choice value="*">All</choice>
+        <default>*</default>
+        <initialValue>*</initialValue>
+        <fieldForLabel>Name</fieldForLabel>
+        <fieldForValue>UUID</fieldForValue>
+        <search>
+          <query>sourcetype=xendesktop:7:desktopgroup | stats values(Name) as Name by UUID</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+      </input>
+      <table>
+        <search>
+          <query>sourcetype="xendesktop:7:desktopgroup" UUID="$desktop_filter_tok$" | stats values(Name) as Name, values(Description) as Description, values(PublishedName) as PubName, values(SessionSupport) as SessType, latest(DesktopsDisconnected) as Disco, latest(DesktopsInUse) as InUse, values(DesktopsUnregistered) as Unreg, latest(Enabled) as Enabled, latest(InMaintenanceMode) as Maint, latest(TotalApplications) as AppCount, latest(TotalDesktops) as DesktopCount by UUID</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <drilldown>
+          <set token="desktop_uuid_tok">$row.UUID$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Group State History  ($desktop_uuid_tok$)</title>
+      <chart>
+        <search>
+          <query>UUID="$desktop_uuid_tok$" sourcetype="xendesktop:7:desktopgroup" | timechart span=5m max(Desktops*) as Desktops* | appendcols [search sourcetype="xendesktop:7:desktopgroup" | timechart span=5m dc(UUID) as totalDesktops]</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.overlayFields">totalDesktops</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Session Establishment Averages  ($desktop_uuid_tok$)</title>
+      <chart>
+        <search>
+          <query>sourcetype="xendesktop:7:session" EstablishmentTime!=""[search DesktopGroupUUID="$desktop_uuid_tok$" sourcetype="xendesktop:7:machine" | stats count by SID | fields - count | rename SID as DesktopSID] | eval newTime = strptime(EstablishmentTime, "%m/%d/%Y %H:%M:%S") | rename newTime as _time | dedup _time, SessionKey, EstablishmentDuration | eval EstablishmentDuration = round(EstablishmentDuration/1000,2) | timechart cont=f avg(EstablishmentDuration) as LogonTime</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Top 10 Users  ($desktop_uuid_tok$)</title>
+        <search>
+          <query>sourcetype="xendesktop:7:session" [search DesktopGroupUUID="$desktop_uuid_tok$" sourcetype="xendesktop:7:machine" | stats count by SID | fields - count | rename SID as DesktopSID] | stats values(UntrustedUserName) as DomainUserName, values(UserName) as UserName by SessionKey | top 10 UserName</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Top Clients Types  ($desktop_uuid_tok$)</title>
+        <search>
+          <query>sourcetype="xendesktop:7:session" ClientPlatform != "Unknown" [search DesktopGroupUUID="$desktop_uuid_tok$" sourcetype="xendesktop:7:machine" | stats count by SID | fields - count | rename SID as DesktopSID] | stats values(ClientPlatform) as ClientPlatform by SessionKey | eval ClientPlatform = if(mvcount(ClientPlatform)&gt;1 AND ClientPlatform=="Unknown", mvindex(ClientPlatform,0),ClientPlatform) |top ClientPlatform</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel depends="desktop_uuid_tok">
+      <viz type="parallel_coordinates_app.parallel_coordinates">
+        <title>Connection Flow</title>
+        <search>
+          <query>sourcetype="citrix:netscaler:*" OR sourcetype="xendesktop:7:session"  [search sourcetype="xendesktop:7:session" [search DesktopGroupUUID="$desktop_uuid_tok$" sourcetype="xendesktop:7:machine" | stats count by SID | fields - count | rename SID as DesktopSID] | stats count by session_guid | fields session_guid] |   stats values(client_ip) as ExternalIP, values(ConnectedViaIP) as NetscalerIP, values(LaunchedViaIP) as StoreFrontIP, values(LaunchedViaPublishedName) as AppName ,values(IPAddress) as VdaIP by session_guid | iplocation ExternalIP | eval City = if(isnull(City), "More data needed", City) | eval NetscalerIP = mvjoin(NetscalerIP,"") | where isnotnull(City) AND isnotnull(NetscalerIP) AND (isnotnull(StoreFrontIP) AND StoreFrontIP != "") AND (isnotnull(VdaIP) AND VdaIP != "") AND (isnotnull(AppName) AND AppName != "")  | table City, NetscalerIP, StoreFrontIP, AppName, VdaIP</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+</form>

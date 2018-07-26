@@ -1,19 +1,19 @@
 <form stylesheet="user_session_exp_wizard.css">
   <label>User Experience - Session</label>
-  
+
   <fieldset autoRun="false">
-    
+
     <input type="time" searchWhenChanged="true">
       <default>Last 24 hours</default>
       <label>Time Range:</label>
     </input>
-    
+
     <input type="text" token="username">
       <label>User Name:</label>
     </input>
-    
+
   </fieldset>
-  
+
   <row>
     <html>
       <p>
@@ -21,10 +21,11 @@
       </p>
     </html>
   </row>
-  
+
   <row>
     <table id="userSessions">
-      <searchString>
+      <search>
+        <query>
         `xd_index` sourcetype=xendesktop:*:session UserName="$username$" StartTime!="" SiteName="*" |
         makemv delim=";" ApplicationsInUse |
         stats latest(_time) AS CurrentTime Values(ApplicationsInUse) AS "Application(s)" by StartTime MachineName UserName SiteName |
@@ -33,19 +34,20 @@
         eval "Log on Time" = strftime(StartTime, "%m/%d/%Y %H:%M:%S") |
         table UserName "Log on Time" SiteName "Application(s)" MachineName  SessionDuration StartTime CurrentTime  |
         rename UserName AS "User Name" SiteName AS "Site Name" MachineName AS "Machine Name" SessionDuration AS "Session Duration"
-      </searchString>
-      
+        </query>
+      </search>
+
       <title>User Sessions</title>
-      
+
       <drilldown>
         <link>
           <![CDATA[
-            /app/TemplateForXenDesktop7/user_session_experience?form.username=$row.User Name$&form.machinename=$row.Machine Name$&earliest=$row.StartTime$&latest=$row.CurrentTime$
+            /app/TemplateForXenDesktop7/user_session_exp?form.username=$row.User Name$&form.machinename=$row.Machine Name$&earliest=$row.StartTime$&latest=$row.CurrentTime$
           ]]>
          </link>
      </drilldown>
-      
+
     </table>
   </row>
-  
+
 </form>

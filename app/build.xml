@@ -5,7 +5,7 @@
 	<property name="BROKERADDON" value="TA-XD7-Broker"/>
 	<property name="VDAADDON" value="TA-XD7-VDA"/>
 
-	<property name="VERSION" value="1.1.2"/>
+	<property name="VERSION" value="1.2.1"/>
 	<buildnumber/>
 
 	<property name="build.dir" value="build"/>
@@ -20,13 +20,13 @@
 	<target name="package" depends="build,build-addons">
 		<mkdir dir="${build.dir}/dist" />
 		<tar destfile="${dist.file}" longfile="gnu" compression="gzip">
-			<tarfileset dir="${build.dir}" filemode="755" username="splunk" group="splunk">
+			<tarfileset dir="${build.dir}">
 				<include name="${APP}/**"/>
 			</tarfileset>
 		</tar>
 	</target>
 
-	<target name="build" depends="build-app,build-addons">
+	<target name="build" depends="build-app">
 	</target>
 
 	<target name="build-addons" depends="build-broker,build-vda">

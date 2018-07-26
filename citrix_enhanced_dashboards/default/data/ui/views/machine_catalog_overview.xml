@@ -1,0 +1,206 @@
+<form>
+  <label>Machine Catalog Overview</label>
+  <fieldset submitButton="true" autoRun="false">
+    <input type="time" token="time_tok">
+      <label>Time Range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="mc_tok" searchWhenChanged="false">
+      <label>Machine Catalog</label>
+      <fieldForLabel>Name</fieldForLabel>
+      <fieldForValue>UUID</fieldForValue>
+      <search>
+        <query>sourcetype="xendesktop:7:catalog" | stats values(Name) as Name by UUID</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <table>
+        <title>Catalog Machine List</title>
+        <search>
+          <query>sourcetype="xendesktop:7:machine" CatalogUUID="$mc_tok$"| stats values(DNSName) as Name, values(AgentVersion) as VDAVersion, values(DesktopGroupName) as DeliveryGroup, values(InMaintenanceMode) as Maintenance, values(PersistUserChanges) as Persist, values(IPAddress) as IPAddress, values(OSType) as OS, values(RegistrationState) as RegistrationState by SID</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">cell</option>
+        <drilldown>
+          <set token="machine_sid_tok">$row.SID$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Catalog Session Distribution</title>
+        <search>
+          <query>sourcetype="xendesktop:7:session" SessionState!=Disconnected [search sourcetype="xendesktop:7:machine" CatalogUUID="$mc_tok$" | rename SID as DesktopSID | fields DesktopSID] | timechart span=1m dc(SessionKey) as "Session Count" by MachineName</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Catalog Disconnect Trends by Host</title>
+        <search>
+          <query>sourcetype="xendesktop:7:session" SessionState=Disconnected [search sourcetype="xendesktop:7:machine" CatalogUUID="$mc_tok$" | rename SID as DesktopSID | fields DesktopSID] | timechart span=1m dc(SessionKey) as "Disconnected Count" by MachineName</query>
+          <earliest>-15m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Machine Session Volume</title>
+        <search>
+          <query>sourcetype="xendesktop:7:machine" SID="$machine_sid_tok$" | timechart cont=f max(SessionCount) as SessionCount</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Machine Users Seen</title>
+        <search>
+          <query>sourcetype=xendesktop:7:session DesktopSID="$machine_sid_tok$" | stats values(SessionKey) as SessionKey by UserName | eval SessionCount = mvcount(SessionKey) | fields UserName, SessionCount | sort - SessionCount</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Machine Session Launch Time vs. Catalog Average</title>
+        <search>
+          <query>sourcetype="xendesktop:7:session" [search sourcetype="xendesktop:7:machine" [search sourcetype=xendesktop:7:machine SID="$machine_sid_tok$" | dedup CatalogUUID | fields CatalogUUID] | rename SID as DesktopSID | fields DesktopSID] | dedup SessionKey | eventstats avg(EstablishmentDuration) as AvgSessionReady | eventstats avg(EstablishmentDuration) as AvgSessionReadyHost by DesktopSID | stats values(AvgSessionReadyHost) as LocalReadyTime, values(AvgSessionReady) as CatalogReadyTime, values(MachineName) as MachineName by DesktopSID | where DesktopSID=="$machine_sid_tok$" | eval CatalogReadyTime = round(CatalogReadyTime/1000,2) | eval LocalReadyTime = round(LocalReadyTime/1000,2)| fields - DesktopSID | table MachineName, LocalReadyTime, CatalogReadyTime</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Load Over Time</title>
+        <search type="annotation">
+          <query>sourcetype=xendesktop:7:session DesktopSID="$machine_sid_tok$" 
+| dedup SessionKey 
+| eval _time=strptime(EstablishmentTime, "%m/%d/%Y %H:%M:%S") 
+| where not isnull(_time) | eval annotation_label = UserName | eval annotation_category="START" | append [search sourcetype=xendesktop:7:session DesktopSID="$machine_sid_tok$" 
+| dedup SessionKey 
+| eval _time=strptime(BrokeringTime, "%m/%d/%Y %H:%M:%S") 
+| where not isnull(_time) | eval annotation_label = UserName | eval annotation_category="BROKER"]</query>
+        </search>
+        <search>
+          <query>sourcetype="xendesktop:7:machine" SID="$machine_sid_tok$" | eval LoadIndex = if(isnull(LoadIndex) OR LoadIndex="", 1, LoadIndex) | timechart cont=f avg(LoadIndex) as AvgLoad, max(LoadIndex) as MaxLoad</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="charting.annotation.categoryColors">{"START":"0x00ff00", "BROKER":"0x0000ff"}</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <viz type="parallel_coordinates_app.parallel_coordinates">
+        <title>Connection Flow</title>
+        <search>
+          <query>sourcetype="citrix:netscaler:*" OR sourcetype="xendesktop:7:session"  [search sourcetype="xendesktop:7:session" [search  sourcetype="xendesktop:7:machine" CatalogUUID="$mc_tok$" | dedup SID | rename SID as DesktopSID | fields DesktopSID] | stats count by session_guid | fields session_guid ] |   stats values(client_ip) as ExternalIP, values(ConnectedViaIP) as NetscalerIP, values(LaunchedViaIP) as StoreFrontIP, values(LaunchedViaPublishedName) as AppName ,values(IPAddress) as VdaIP by session_guid  |  mvexpand ExternalIP | iplocation ExternalIP  | eval NetscalerIP = mvjoin(NetscalerIP,"") | where isnotnull(Region) AND isnotnull(NetscalerIP) AND isnotnull(StoreFrontIP) AND isnotnull(VdaIP) AND isnotnull(AppName) | table Region, NetscalerIP, StoreFrontIP, AppName, VdaIP</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </viz>
+    </panel>
+  </row>
+</form>

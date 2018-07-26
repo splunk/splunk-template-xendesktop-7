@@ -6,10 +6,12 @@
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
     
     <input type="time">
@@ -17,9 +19,13 @@
       <default>Last 24 hours</default>
     </input>
     
-    <input type="text" token="machinename" id="server">
+    <input type="dropdown" token="machinename">
       <label>Machine:</label>
-      <seed>*</seed>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | search SiteName="$SiteName$"</query>
+      </search>
+      <fieldForLabel>MachineName</fieldForLabel>
+      <fieldForValue>MachineName</fieldForValue>
     </input>
     
   </fieldset>
@@ -36,14 +42,16 @@
   
     <table>
       <title>Unexpected Service Terminations</title>
-      <searchString>
-	<![CDATA[
-	`xd_winevents_index` source=wineventlog:system terminated ("EventCode=7034" OR "EventCode=7031") SiteName="$SiteName$" host="$machinename$" |
-	rex field=Message "(?i)^The (?<Service_Name>.*) service terminated unexpectedly.\s+It has done this (?<num_failures>\d+)" |
-	table _time SiteName host EventCode Service_Name num_failures Message |
-	rename host AS Machine SiteName AS Site EventCode AS "Event Code" Service_Name AS "Service Name" num_failures AS "Failure Count"
-	]]>
-      </searchString>
+      <search>
+        <query>
+        	<![CDATA[
+        	`xd_winevents_index` source=wineventlog:system terminated ("EventCode=7034" OR "EventCode=7031") SiteName="$SiteName$" host="$machinename$" |
+        	rex field=Message "(?i)^The (?<Service_Name>.*) service terminated unexpectedly.\s+It has done this (?<num_failures>\d+)" |
+        	table _time SiteName host EventCode Service_Name num_failures Message |
+        	rename host AS Machine SiteName AS Site EventCode AS "Event Code" Service_Name AS "Service Name" num_failures AS "Failure Count"
+        	]]>
+	      </query>
+      </search>
     </table>
     
   </row>

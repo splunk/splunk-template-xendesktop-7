@@ -1,73 +1,68 @@
 <form stylesheet="user_activity.css">
   <label>User Activity</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
-    
     <input type="time">
       <label>Time Range:</label>
       <default>Last 24 hours</default>
     </input>
-
     <input type="text" token="UserName">
       <label>User Name:</label>
       <default>*</default>
-      <seed>*</seed>
     </input>
-    
     <input type="text" token="server">
       <label>Machine Name:</label>
       <default>*</default>
-      <seed>*</seed>
     </input>
-    
     <input type="text" token="AppName">
       <label>Application Name:</label>
       <default>*</default>
-      <seed>*</seed>
     </input>
-    
   </fieldset>
-  
   <row>
-    <html>
+    <panel>
+      <html>
       <p>
 	This dashboard shows user logons.  Click a row to get session details including individual process resource utilization.
       </p>
     </html>
+    </panel>
   </row>
-  
   <row>
-    <table id="tblUsers">
-      <title>User Activity</title>
-      <searchString>
-	`xd_index` sourcetype=xendesktop:*:session SiteName="$SiteName$" UserName="$UserName$" UserName!="" MachineName="$server$" ApplicationsInUse="*$AppName$*" StartTime!="" |
+    <panel>
+      <table id="tblUsers">
+        <title>User Activity</title>
+        <search>
+          <query>`xd_index` sourcetype=xendesktop:*:session SiteName="$SiteName$" UserName="$UserName$" UserName!="" MachineName="$server$" ApplicationsInUse="*$AppName$*" StartTime!="" |
 	makemv delim=";" ApplicationsInUse |
 	stats latest(UserName) AS UserName latest(ClientAddress) AS ClientAddress latest(ClientVersion) AS ClientVersion latest(_time) AS CurrentTime values(ApplicationsInUse) AS ApplicationsInUse BY StartTime MachineName  |
 	convert timeformat="%m/%d/%Y %H:%M:%S %Z" mktime(StartTime) |
 	eval SessionDuration = tostring(CurrentTime - StartTime, "duration") |
 	eval "Start Time" = strftime(StartTime, "%m/%d/%Y %H:%M:%S") |
 	table UserName "Start Time" MachineName SessionDuration ApplicationsInUse ClientAddress ClientVersion StartTime CurrentTime |
-	rename UserName AS "User Name" MachineName AS "Machine Name" ApplicationsInUse AS "Application(s)" ClientAddress AS "IP Address" ClientVersion AS "Client Version"
-      </searchString>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
-            /app/TemplateForXenDesktop7/session-user?form.username=$row.User Name$&form.machinename=$row.Machine Name$&earliest=$row.StartTime$&latest=$row.CurrentTime$&form.sessionKey=$row.SessionKey$
+	rename UserName AS "User Name" MachineName AS "Machine Name" ApplicationsInUse AS "Application(s)" ClientAddress AS "IP Address" ClientVersion AS "Client Version"</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="refresh.display">progressbar</option>
+        <drilldown>
+          <link>
+            <![CDATA[
+            /app/TemplateForXenDesktop7/user_session_detail?form.username=$row.User Name$&form.machinename=$row.Machine Name$&earliest=$row.StartTime$&latest=$row.CurrentTime$&form.sessionKey=$row.SessionKey$
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
-    
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
 </form>

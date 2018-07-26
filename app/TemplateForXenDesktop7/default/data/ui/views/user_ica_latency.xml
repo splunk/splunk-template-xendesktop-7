@@ -6,10 +6,12 @@
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
   
     <input type="time">
@@ -19,26 +21,25 @@
 
     <input type="text" token="server">
       <label>Server:</label>
-      <seed>*</seed>
+      <default>*</default>
     </input>
     
     <input type="text" token="username">
       <label>User Name:</label>
       <default>*</default>
-      <seed>*</seed>
     </input>
     
     <input type="text" token="meanLatency">
       <label>Latency greather than:</label>
       <default>0</default>
-      <seed>0</seed>
     </input>
   </fieldset>
   
   <row>
     <table>
       <title>User ICA Latency</title>
-      <searchString>
+      <search>
+        <query>
 	`xd_index` sourcetype="xendesktop:*:session" MachineName="$server$" SiteName="$SiteName$" UserName="$username$" StartTime!="" |
 	eval UserName = lower(UserName) |
 	rename MachineName AS host |
@@ -47,7 +48,8 @@
 	stats values(ClientName) as Device values(IPAddress) as "IP Address" values(ClientVersion) as "Client Version" values(ApplicationsInUse) as Applications mean(Latency_-_Session_Average) as ml BY host UserName StartTime |
 	where ml >= $meanLatency$ |
 	rename host AS Host UserName AS "User Name" ml AS "Mean Latency" StartTime AS "Log on Time"
-      </searchString>
+	      </query>
+      </search>
     </table>
     
   </row>

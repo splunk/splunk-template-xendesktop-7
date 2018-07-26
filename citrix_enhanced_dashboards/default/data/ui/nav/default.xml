@@ -1,0 +1,17 @@
+<nav search_view="search" color="#65A637">
+  <view name="xendesktop_site_overview" default="true"/>
+  <view name="citrix_user_interrogator" />
+  <collection label="Views">
+	<view name="infrastructure_error_overview"/>
+	<view name="delivery_group_overview"/>
+	<view name="machine_catalog_overview"/>
+  </collection>
+  <view name="session_details"/>
+  <collection label="Defaults">
+	  <view name="search"/>
+	  <view name="datasets" />
+	  <view name="reports" />
+	  <view name="alerts" />
+	  <view name="dashboards" />
+  </collection>
+</nav>

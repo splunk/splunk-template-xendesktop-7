@@ -6,10 +6,12 @@
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
     
     <input type="time">
@@ -22,13 +24,15 @@
   <row>
     <table>
       <title>Machines</title>
-      <searchString>
-	`xd_index` SiteName="$SiteName$" sourcetype="xendesktop:*:machine" |
-	table host AgentVersion CatalogName DesktopGroupName PersistUserChanges PowerState RegistrationState |
-	dedup host |
-	sort host |
-	rename host AS Machine AgentVersion AS "Agent Version" CatalogName AS "Machine Catalog" DesktopGroupName AS "Delivery Group" PersistUserChanges AS "Persist User Changes" PowerState AS "Power State" RegistrationState AS "Registration State"
-      </searchString>
+      <search>
+        <query>
+        	`xd_index` SiteName="$SiteName$" sourcetype="xendesktop:*:machine" |
+        	table host AgentVersion CatalogName DesktopGroupName PersistUserChanges PowerState RegistrationState |
+        	dedup host |
+        	sort host |
+        	rename host AS Machine AgentVersion AS "Agent Version" CatalogName AS "Machine Catalog" DesktopGroupName AS "Delivery Group" PersistUserChanges AS "Persist User Changes" PowerState AS "Power State" RegistrationState AS "Registration State"
+	      </query>
+      </search>
       
       <drilldown>
         <link>
@@ -44,15 +48,17 @@
   <row>
     <table>
       <title>Published Applications</title>
-      <searchString>
-	| inputlookup lookup_pubapp.csv |
-	join type=outer BrowserName SiteName [search `xd_index` SiteName="$SiteName$" sourcetype=xendesktop:*:session | makemv delim=";" ApplicationsInUse | stats dc(UserName) AS "User Count" BY ApplicationsInUse SiteName | rename ApplicationsInUse AS BrowserName] |
-	search SiteName="$SiteName$" |
-	fillnull value="0" "User Count" |
-	sort - "User Count" |
-	table SiteName PublishedName ApplicationType Status "User Count" BrowserName |
-	rename SiteName AS "Site" PublisehdName AS "Application" ApplicationType AS "Application Type"
-      </searchString>
+      <search>
+        <query>
+        	| inputlookup lookup_pubapp.csv |
+        	join type=outer BrowserName SiteName [search `xd_index` SiteName="$SiteName$" sourcetype=xendesktop:*:session | makemv delim=";" ApplicationsInUse | stats dc(UserName) AS "User Count" BY ApplicationsInUse SiteName | rename ApplicationsInUse AS BrowserName] |
+        	search SiteName="$SiteName$" |
+        	fillnull value="0" "User Count" |
+        	sort - "User Count" |
+        	table SiteName PublishedName ApplicationType Status "User Count" BrowserName |
+        	rename SiteName AS "Site" PublisehdName AS "Application" ApplicationType AS "Application Type"
+	      </query>
+      </search>
       
       <drilldown>
         <link>

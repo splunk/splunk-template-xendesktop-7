@@ -1,20 +1,24 @@
 <form stylesheet="app_crash.css" script="app_crash.js">
   <label>Application Crashes</label>
   
-  <searchTemplate>
-    `xd_winevents_index` sourcetype="WinEventLog:Application" Type="Error" EventCode &gt;= 1000 EventCode &lt;= 1011 host="$machinename$" SiteName="$SiteName$"|
-    stats count by _time host Faulting_app_name EventCode Exception_code Message
-  </searchTemplate>
+  <search id="base">
+    <query>
+      `xd_winevents_index` sourcetype="WinEventLog:Application" Type="Error" EventCode &gt;= 1000 EventCode &lt;= 1011 host="$machinename$" SiteName="$SiteName$"|
+      stats count by _time host Faulting_app_name EventCode Exception_code Message
+    </query>
+  </search>
   
   <fieldset autoRun="true">
     
     <input type="dropdown" token="SiteName">
       <label>Site:</label>
       <choice value="*">All Sites</choice>
-      <populatingSearch fieldForValue="SiteName" fieldForLabel="SiteName">
-	<![CDATA[| inputlookup lookup_host_site.csv | stats count by SiteName]]>
-      </populatingSearch>
       <default>*</default>
+      <fieldForLabel>SiteName</fieldForLabel>
+      <fieldForValue>SiteName</fieldForValue>
+      <search>
+        <query>| inputlookup lookup_host_site.csv | stats count by SiteName</query>
+      </search>
     </input>
 
     <input type="time">
@@ -24,7 +28,7 @@
     
     <input type="text" token="machinename">
       <label>Machine:</label>
-      <seed>*</seed>
+      <default>*</default>
     </input>
 
   </fieldset>
@@ -32,9 +36,11 @@
   <row>
     <chart id="chartApps">
       <title>Application Crash or Hang</title>
-      <searchPostProcess>
-	chart count by Faulting_app_name
-      </searchPostProcess>
+      <search base="base">
+        <query>
+	        chart count by Faulting_app_name
+        </query>
+      </search>
       <option name="charting.axisTitleX.visibility">visible</option>
       <option name="charting.axisTitleY.visibility">visible</option>
       <option name="charting.axisX.scale">linear</option>
@@ -53,12 +59,14 @@
   
   <row>
     <table id="tblCrashReport">
-      <searchPostProcess>
-	sort - _time |
-	eval Time = strftime(_time, "%Y-%m-%d %H:%M:%S") |
-	table Time host Faulting_app_name EventCode Exception_code Message |
-	rename host AS Machine Faulting_app_name AS "Application" EventCode AS "Event Code" Exception_code AS "Exception Code"
-      </searchPostProcess>
+      <search base="base">
+        <query>
+        	sort - _time |
+        	eval Time = strftime(_time, "%Y-%m-%d %H:%M:%S") |
+        	table Time host Faulting_app_name EventCode Exception_code Message |
+        	rename host AS Machine Faulting_app_name AS "Application" EventCode AS "Event Code" Exception_code AS "Exception Code"
+        </query>
+      </search>
     </table>
   </row>
   

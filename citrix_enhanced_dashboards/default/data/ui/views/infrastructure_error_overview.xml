@@ -1,0 +1,175 @@
+<form>
+  <label>Infrastructure Error &amp; Health Overview</label>
+  <fieldset submitButton="false">
+    <input type="time" token="time_tok">
+      <label>Time Range</label>
+      <default>
+        <earliest>-15m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Netscaler Error Rate</title>
+        <search>
+          <query>sourcetype=citrix:netscaler:* (error OR fail*) NOT "citrix.itsgonna.fail" | timechart count as Errors</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Storefront Error Rate</title>
+        <search>
+          <query>tag=citrix_storefront_server (sourcetype="wineventlog*" OR sourcetype="ms:iis:auto") (error OR fail* OR Type=Error) | timechart count as Errors</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Delivery Controller Error Rate</title>
+        <search>
+          <query>tag=citrix_delivery_controller_server sourcetype="wineventlog*" (error OR fail* OR Type=Error) | timechart count as Errors</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Netscaler Time Since Last Event</title>
+        <search>
+          <query>sourcetype=citrix:netscaler:nitro | stats latest(_time) as SecondsSinceLastEvent by host | eval SecondsSinceLastEvent = now()-SecondsSinceLastEvent | eval SecondsSinceLastEvent = strftime(SecondsSinceLastEvent, "%S")</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="height">108</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="underLabel">seconds</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Storefront Time Since Last Event</title>
+        <search>
+          <query>tag=citrix_storefront_server  | stats latest(_time) as SecondsSinceLastEvent by host | eval SecondsSinceLastEvent = now()-SecondsSinceLastEvent | eval SecondsSinceLastEvent = strftime(SecondsSinceLastEvent, "%S")</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="height">124</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="underLabel">seconds</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Delivery Controller Time Since Last Event</title>
+        <search>
+          <query>tag=citrix_delivery_controller_server | stats latest(_time) as SecondsSinceLastEvent by host | eval SecondsSinceLastEvent = now()-SecondsSinceLastEvent | eval SecondsSinceLastEvent = strftime(SecondsSinceLastEvent, "%S")</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="height">107</option>
+        <option name="trellis.enabled">1</option>
+        <option name="underLabel">seconds</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Netscaler Errors</title>
+        <search>
+          <query>sourcetype=citrix:netscaler:* (error OR fail* NOT "citrix.itsgonna.fail")</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Storefront Errors</title>
+        <search>
+          <query>tag=citrix_storefront_server  (sourcetype="wineventlog*" OR sourcetype="ms:iis:auto") (error OR fail* OR Type=Error) | eval Message = coalesce(Message, _raw) | table _time, Message</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Delivery Controller Errors</title>
+        <search>
+          <query>tag=citrix_delivery_controller_server sourcetype="wineventlog*" (error OR fail* OR Type=Error) | table _time, Message</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Netscaler Reboots</title>
+        <search>
+          <query>citrix_netscaler_event_name=startsys | stats sparkline as trend, count as Reboots by host | rename host as Host</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Storefront Reboots</title>
+        <search>
+          <query>tag=citrix_storefront_server  sourcetype=wineventlog:system EventCode=6005 | stats sparkline as Trend, count as Reboots by host | rename host as Host</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Delivery Controller Reboots</title>
+        <search>
+          <query>tag=citrix_delivery_controller_server sourcetype=wineventlog:system EventCode=6005 | stats sparkline as Trend, count as Reboots by host | rename host as Host</query>
+          <earliest>$time_tok.earliest$</earliest>
+          <latest>$time_tok.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </table>
+    </panel>
+  </row>
+</form>
