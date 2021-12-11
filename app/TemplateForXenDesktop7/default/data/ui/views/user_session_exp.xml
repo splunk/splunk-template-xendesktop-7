@@ -1,4 +1,4 @@
-<form>
+<form version="1.1">
   <label>User Session Experience</label>
   
   <fieldset submitButton="true">
@@ -41,7 +41,6 @@
           <query>rangemap field=cpu low=0-`CPU-Warning` elevated=`CPU-Warning`-`CPU-Critical` default=severe</query>
         </search>
         <option name="field">cpuPct</option>
-        <option name="classField">range</option>
         <option name="drilldown">none</option>
         <option name="numberPrecision">0.00</option>
         <option name="refresh.display">progressbar</option>

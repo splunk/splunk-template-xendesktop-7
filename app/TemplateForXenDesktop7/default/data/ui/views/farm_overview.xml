@@ -1,70 +1,67 @@
-<form stylesheet="farm_overview.css" script="farm_overview.js">
+<form version="1.1" stylesheet="farm_overview.css" script="farm_overview.js">
   <label>Farm Overview</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="FarmName">
       <label>Farm:</label>
       <choice value="*">All Farms</choice>
-      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
-	<![CDATA[| inputlookup lookup_host_farm.csv]]>
-      </populatingSearch>
+      <search>
+        <query>| inputlookup lookup_host_farm.csv</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
       <default>*</default>
+      <fieldForLabel>FarmName</fieldForLabel>
+      <fieldForValue>FarmName</fieldForValue>
     </input>
-    
     <input type="time">
       <label>Time Range:</label>
       <default>Last 24 hours</default>
     </input>
-    
   </fieldset>
-
   <row>
-    <table>
-      <title>Servers</title>
-      <searchString>
-	`xd_index` FarmName="$FarmName$" sourcetype="xenapp:*:server" |
+    <panel>
+      <table>
+        <title>Servers</title>
+        <search>
+          <query>`xd_index` FarmName="$FarmName$" sourcetype="xenapp:*:server" |
 	lookup winHosts host OUTPUT OS |
 	eval Product = CitrixProductName.", ".CitrixEdition |
 	table host Product CitrixVersion CitrixServicePack OS IPAddresses |
 	dedup host |
 	sort host |
-	rename host AS Server CitrixVersion AS "Citrix Version" CitrixServicePack AS "Citrix Service Pack" OS AS "Operating System" IPAddresses AS "IP Address"
-      </searchString>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+	rename host AS Server CitrixVersion AS "Citrix Version" CitrixServicePack AS "Citrix Service Pack" OS AS "Operating System" IPAddresses AS "IP Address"</query>
+        </search>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenApp/user_activity?earliest=$earliest$&latest=$latest$&form.server=$row.Server$
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
   <row>
-    <table>
-      <title>Published Applications</title>
-      <searchString>
-	| inputlookup lookup_pubapp.csv |
+    <panel>
+      <table>
+        <title>Published Applications</title>
+        <search>
+          <query>| inputlookup lookup_pubapp.csv |
 	join type=outer BrowserName FarmName [search `xd_index` FarmName="$FarmName$" sourcetype=xenapp:*:session | stats dc(UserName) AS "User Count" BY BrowserName FarmName] |
 	search FarmName="$FarmName$" |
 	fillnull value="0" "User Count" |
 	sort - "User Count" |
 	table FarmName DisplayName ApplicationType Status PreLaunch "User Count" BrowserName |
-	rename FarmName AS "Farm" DisplayName AS "Application" ApplicationType AS "Application Type" PreLaunch AS "Pre-Launch"
-      </searchString>
-      
-      <drilldown>
-        <link>
-          <![CDATA[
+	rename FarmName AS "Farm" DisplayName AS "Application" ApplicationType AS "Application Type" PreLaunch AS "Pre-Launch"</query>
+        </search>
+        <drilldown>
+          <link>
+            <![CDATA[
             /app/TemplateForXenApp/user_activity?earliest=$earliest$&latest=$latest$&form.BrowserName=$row.BrowserName$
           ]]>
-         </link>
-     </drilldown>
-      
-    </table>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
 </form>

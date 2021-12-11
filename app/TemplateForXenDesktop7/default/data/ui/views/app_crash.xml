@@ -1,4 +1,4 @@
-<form stylesheet="app_crash.css" script="app_crash.js">
+<form version="1.1" stylesheet="app_crash.css" script="app_crash.js">
   <label>Application Crashes</label>
   
   <search id="base">

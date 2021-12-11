@@ -1,4 +1,4 @@
-<dashboard stylesheet="help_using.css">
+<dashboard version="1.1" stylesheet="help_using.css">
   <label>Using the Template for Citrix XenDesktop</label>
   
   <row>
@@ -97,7 +97,7 @@
     <tr>
       <td>Only performance data is displayed.  No session, site, application, etc. data is displayed.</td>
       <td>
-	Most likely, the PowerShell ExecutionPolicy has not been set to RemoteSigned.  Refer to the <a href="/static/app/TemplateForXenDesktop7/Installation.pdf" target="_blank">installation instructions</a> for further information.
+	Most likely, the PowerShell ExecutionPolicy has not been set to RemoteSigned.  Refer to the <a href="https://github.com/splunk/splunk-template-xendesktop-7/blob/master/app/TemplateForXenDesktop7/Installation.pdf" target="_blank">installation instructions</a> for further information.
       </td>
     </tr>
     

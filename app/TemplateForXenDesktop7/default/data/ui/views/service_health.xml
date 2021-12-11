@@ -1,45 +1,40 @@
-<form script="service_health.js" stylesheet="service_health.css">
+<form version="1.1" script="service_health.js" stylesheet="service_health.css">
   <label>Farm Services - Health</label>
-  
   <fieldset autoRun="true">
-    
     <input type="dropdown" token="FarmName">
       <label>Farm:</label>
       <choice value="*">All Farms</choice>
-      <populatingSearch fieldForValue="FarmName" fieldForLabel="FarmName">
-	<![CDATA[| inputlookup lookup_host_farm.csv]]>
-      </populatingSearch>
+      <search>
+        <query>| inputlookup lookup_host_farm.csv</query>
+      </search>
       <default>*</default>
+      <fieldForLabel>FarmName</fieldForLabel>
+      <fieldForValue>FarmName</fieldForValue>
     </input>
-    
   </fieldset>
-  
   <row>
-    <html>
+    <panel>
+      <html>
       <p>
 	This table shows latest value of each <a href="help#def_ServiceGroup">Service Group</a> in the past 24 hours.  Click on a row to get details.
       </p>
     </html>
+    </panel>
   </row>
-  
   <row>
-  
-    <table id="tblHealth">
-      <title>Health</title>
-      <searchString>
-	`xd_index` sourcetype="WMI:Services" `Services-Inf` FarmName="$FarmName$" earliest="-24h@h" latest="now" |
+    <panel>
+      <table id="tblHealth">
+        <title>Health</title>
+        <search>
+          <query>`xd_index` sourcetype="WMI:Services" `Services-Inf` FarmName="$FarmName$" earliest="-24h@h" latest="now" |
 	stats latest(State) AS State by ServiceGroup FarmName |
 	table FarmName ServiceGroup State |
-	rename FarmName AS "Farm Name" ServiceGroup AS "Service Group"
-      </searchString>
-      
-      <drilldown>
-	<link>
-	  /app/SplunkAppForXD/services_group?form.ServiceGroup=$row.Service Group$
-	</link>
-      </drilldown>
-    </table>
-    
+	rename FarmName AS "Farm Name" ServiceGroup AS "Service Group"</query>
+        </search>
+        <drilldown>
+          <link>/app/SplunkAppForXD/services_group?form.ServiceGroup=$row.Service Group$</link>
+        </drilldown>
+      </table>
+    </panel>
   </row>
-  
 </form>

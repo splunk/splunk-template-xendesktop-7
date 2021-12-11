@@ -1,4 +1,4 @@
-<dashboard stylesheet="calendar.css" script="autodiscover.js">
+<dashboard version="1.1" stylesheet="calendar.css" script="autodiscover.js">
     <label>Usage Calendar</label>
     
     <row>

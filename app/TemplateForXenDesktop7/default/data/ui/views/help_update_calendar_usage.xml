@@ -1,4 +1,4 @@
-<form>
+<form version="1.1">
   <label>Update Calendar Usage Report</label>
   
   <fieldset autoRun="false">
@@ -18,16 +18,19 @@
       </p>
     </html>
   </row>
-  
+
   <row>
-    <table>
-      <title>Calendar - Usage Table</title>
-      <searchString>
-	| savedsearch "Lookup - Calendar - Users by Day"
-      </searchString>
-      <drilldown>off</drilldown>
-    </table>
+    <panel>
+      <table>
+        <title>Calendar - Usage Table</title>
+        <search>
+          <query>| savedsearch "Lookup - Calendar - Users by Day"</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
   </row>
- 
   
 </form>
