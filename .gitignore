@@ -12,3 +12,4 @@ Icon?
 *.bak
 *.pyc
 indexes/*
+app/TemplateForXenDesktop7/*.docx
