@@ -11,3 +11,4 @@ Icon?
 *~
 *.bak
 *.pyc
+indexes/*
