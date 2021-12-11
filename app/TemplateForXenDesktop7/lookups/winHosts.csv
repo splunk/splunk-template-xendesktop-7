@@ -1,7 +1,1 @@
 host,"_time",OS,Architecture,Version,BuildNumber,ServicePack,LastBootUpTime,TotalPhysicalMemoryKB,TotalVirtualMemoryKB,NumberOfCores
-"BD-XA65-01",1381338939,"Microsoft Windows Server 2008 R2 Standard","64-bit","6.1.7601",7601,"Service Pack 1","20131002223841.620400-420",1044084,2261620,
-"XA60-01",1394053756,"Microsoft Windows Server 2008 R2 Standard","64-bit","6.1.7601",7601,"Service Pack 1","20140305150806.707375-360",2096696,4193392,
-"XA65-01",1395266796,"Microsoft Windows Server 2008 R2 Standard",x64,"6.1.7601",7601,"Service Pack 1","20140319113959.340375-300",2096696,4193392,2
-"XA65-02",1395267671,"Microsoft Windows Server 2008 R2 Standard",x64,"6.1.7601",7601,"Service Pack 1","20140319114642.388125-300",2096696,4193392,1
-"XD7-B01",1512669027,"Microsoft Windows Server 2012 R2 Datacenter",x64,"6.3.9600",9600,,"20171207114908.689000-360",1732148,2649652,1
-"XD7-S01",1512671209,"Microsoft Windows Server 2012 R2 Datacenter",x64,"6.3.9600",9600,,"20171207115101.843093-360",2096692,3145268,4

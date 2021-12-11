@@ -1,5 +1,1 @@
 SiteName,BrowserName,PublishedName,ApplicationType,Enabled,Status
-Lab,Calculator,Calculator,HostedOnDesktop,True,Enabled
-Lab,Notepad,Notepad,HostedOnDesktop,True,Enabled
-Lab,Paint,Paint,HostedOnDesktop,True,Enabled
-Lab,Wordpad,Wordpad,HostedOnDesktop,True,Enabled
